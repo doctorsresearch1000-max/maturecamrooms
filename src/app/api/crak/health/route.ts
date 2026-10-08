@@ -10,7 +10,19 @@ export const runtime = "edge";
  * Diagnostic endpoint — never returns secret values, only presence/length.
  */
 export async function GET() {
-  const diagnostics = getCrakRuntimeDiagnostics();
+  let diagnostics;
+  try {
+    diagnostics = getCrakRuntimeDiagnostics();
+  } catch (err) {
+    console.error("[crak] diagnostics failed", err);
+    diagnostics = {
+      cloudflareContext: false,
+      credentialsReady: false,
+      presence: {},
+      resolvedApiBase:
+        "https://performersext-api.pcvdaa.com/performers-ext",
+    };
+  }
 
   if (!isCrakConfigured()) {
     return Response.json(

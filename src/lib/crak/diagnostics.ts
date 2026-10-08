@@ -20,14 +20,32 @@ export type EnvPresence = {
   source: "process" | "cloudflare" | "both" | "none";
 };
 
+type CloudflareEnvLike = Record<string, unknown>;
+
 function readFromProcess(key: string): string {
-  return process.env[key]?.trim() ?? "";
+  try {
+    return process.env[key]?.trim() ?? "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Defensive access to Pages/Workers env via next-on-pages (never throws).
+ */
+function getCloudflareEnv(): CloudflareEnvLike | undefined {
+  try {
+    const ctx = getOptionalRequestContext();
+    return ctx?.env;
+  } catch {
+    return undefined;
+  }
 }
 
 function readFromCloudflare(key: string): string {
   try {
-    const ctx = getOptionalRequestContext();
-    const raw = ctx?.env?.[key as keyof CloudflareEnv];
+    const env = getCloudflareEnv();
+    const raw = env?.[key];
     return typeof raw === "string" ? raw.trim() : "";
   } catch {
     return "";
@@ -44,48 +62,62 @@ export function readCrakRuntimeEnv(key: CrakEnvKey | string): string {
 export function getCrakEnvPresence(): Record<CrakEnvKey, EnvPresence> {
   const out = {} as Record<CrakEnvKey, EnvPresence>;
 
-  for (const key of CRAK_ENV_KEYS) {
-    const fromProcess = readFromProcess(key);
-    const fromCf = readFromCloudflare(key);
-    const value = fromCf || fromProcess;
-    let source: EnvPresence["source"] = "none";
-    if (fromProcess && fromCf) source = "both";
-    else if (fromCf) source = "cloudflare";
-    else if (fromProcess) source = "process";
+  try {
+    for (const key of CRAK_ENV_KEYS) {
+      const fromProcess = readFromProcess(key);
+      const fromCf = readFromCloudflare(key);
+      const value = fromCf || fromProcess;
+      let source: EnvPresence["source"] = "none";
+      if (fromProcess && fromCf) source = "both";
+      else if (fromCf) source = "cloudflare";
+      else if (fromProcess) source = "process";
 
-    out[key] = {
-      present: value.length > 0,
-      length: value.length,
-      source,
-    };
+      out[key] = {
+        present: value.length > 0,
+        length: value.length,
+        source,
+      };
+    }
+  } catch {
+    for (const key of CRAK_ENV_KEYS) {
+      out[key] = { present: false, length: 0, source: "none" };
+    }
   }
 
   return out;
 }
 
 export function getCrakRuntimeDiagnostics() {
-  const presence = getCrakEnvPresence();
-  let cloudflareContext = false;
   try {
-    cloudflareContext = Boolean(getOptionalRequestContext());
-  } catch {
-    cloudflareContext = false;
-  }
+    const presence = getCrakEnvPresence();
+    const cloudflareContext = Boolean(getCloudflareEnv());
 
-  return {
-    cloudflareContext,
-    presence,
-    resolvedApiBase:
-      readCrakRuntimeEnv("CRAK_CAM_API_BASE") ||
-      "https://performersext-api.pcvdaa.com/performers-ext",
-    credentialsReady:
-      Boolean(readCrakRuntimeEnv("CRAK_API_KEY") || readCrakRuntimeEnv("CRAKREVENUE_API_KEY")) &&
-      Boolean(
-        readCrakRuntimeEnv("CRAK_TOKEN") ||
-          readCrakRuntimeEnv("CRAKREVENUE_API_TOKEN") ||
-          readCrakRuntimeEnv("CRACKREVENUE_TOKEN"),
-      ),
-  };
+    return {
+      cloudflareContext,
+      presence,
+      resolvedApiBase:
+        readCrakRuntimeEnv("CRAK_CAM_API_BASE") ||
+        "https://performersext-api.pcvdaa.com/performers-ext",
+      credentialsReady:
+        Boolean(
+          readCrakRuntimeEnv("CRAK_API_KEY") ||
+            readCrakRuntimeEnv("CRAKREVENUE_API_KEY"),
+        ) &&
+        Boolean(
+          readCrakRuntimeEnv("CRAK_TOKEN") ||
+            readCrakRuntimeEnv("CRAKREVENUE_API_TOKEN") ||
+            readCrakRuntimeEnv("CRACKREVENUE_TOKEN"),
+        ),
+    };
+  } catch {
+    return {
+      cloudflareContext: false,
+      presence: {} as Record<CrakEnvKey, EnvPresence>,
+      resolvedApiBase:
+        "https://performersext-api.pcvdaa.com/performers-ext",
+      credentialsReady: false,
+    };
+  }
 }
 
 export function redactCrakUrl(url: string): string {

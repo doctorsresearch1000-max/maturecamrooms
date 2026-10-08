@@ -78,6 +78,7 @@ export async function fetchPerformers(
   const timeout = setTimeout(() => controller.abort(), 12_000);
 
   try {
+    // Workers fetch does not implement RequestInit.cache (no-store crashes runtime).
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -86,7 +87,6 @@ export async function fetchPerformers(
         Accept: "application/json",
       },
       signal: controller.signal,
-      cache: "no-store",
     });
 
     if (!res.ok) {
