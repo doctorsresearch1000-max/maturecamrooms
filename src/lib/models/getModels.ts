@@ -18,7 +18,7 @@ async function queryFeed(options: ModelQuery = {}): Promise<ModelsResult> {
       models: [],
       source: "unconfigured",
       message:
-        "Set CRAKREVENUE_API_KEY and CRAKREVENUE_API_TOKEN on the server to load live performers.",
+        "Set CRAK_API_KEY and CRAK_TOKEN (or CRAKREVENUE_API_KEY / CRAKREVENUE_API_TOKEN) on the server to load live performers.",
     };
   }
 

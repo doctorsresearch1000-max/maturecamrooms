@@ -14,7 +14,7 @@ export async function GET() {
       {
         ok: false,
         configured: false,
-        message: "CRAKREVENUE_API_KEY and CRAKREVENUE_API_TOKEN are required",
+        message: "CRAK_API_KEY and CRAK_TOKEN are required",
       },
       { status: 503 },
     );

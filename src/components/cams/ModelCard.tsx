@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { FavoriteButton } from "@/components/cams/FavoriteButton";
+import { ModelCardLiveMedia } from "@/components/cams/ModelCardLiveMedia";
 import { countryCodeToFlag, countryLabel } from "@/lib/country";
 import type { CamModel } from "@/lib/models/types";
 
@@ -23,21 +23,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
 
   const inner = (
     <>
-      {model.thumbnailUrl ? (
-        <Image
-          src={model.thumbnailUrl}
-          alt={`${model.displayName}${model.age ? `, ${model.age}` : ""}`}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-          className={`object-cover transition duration-base group-hover:scale-[1.03] ${
-            model.isLive ? "" : "opacity-85 saturate-[0.85]"
-          }`}
-          loading={priority ? "eager" : "lazy"}
-          priority={priority}
-        />
-      ) : (
-        <div className="absolute inset-0 bg-surface-hover" />
-      )}
+      <ModelCardLiveMedia model={model} priority={priority} />
 
       {model.isLive ? (
         <span

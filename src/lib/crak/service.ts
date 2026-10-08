@@ -1,6 +1,6 @@
 import { withCache } from "@/lib/crak/cache";
 import { fetchPerformerByName, fetchPerformers } from "@/lib/crak/client";
-import { isCrakConfigured } from "@/lib/crak/config";
+import { isCrakConfigured, resolveCrakBrands } from "@/lib/crak/config";
 import { normalizePerformer } from "@/lib/crak/normalize";
 import {
   matureAgeGroupsQuery,
@@ -35,6 +35,7 @@ async function fetchNormalized(query: FeedQuery): Promise<CamModel[]> {
     tags: query.tags,
     ages: query.ages,
     name: query.name,
+    brands: resolveCrakBrands(),
     gender: "f",
     lang: "en",
   });
@@ -79,11 +80,14 @@ export async function getCrakFeed(query: FeedQuery = {}): Promise<CamModel[]> {
   });
   const ttl = query.live ? LIVE_LIST_TTL : META_TTL;
 
+  const ages =
+    query.ages !== undefined ? query.ages : matureAgeGroupsQuery();
+
   return withCache(key, ttl, () =>
     fetchWithFallback({
       live: query.live ?? true,
       tags: query.tags ?? matureTagsQuery(),
-      ages: query.ages ?? matureAgeGroupsQuery(),
+      ages,
       sorting: query.sorting ?? "score",
       size: query.size ?? 24,
       page: query.page ?? 1,

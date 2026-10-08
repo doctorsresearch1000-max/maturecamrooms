@@ -25,14 +25,20 @@ Open [http://localhost:3000](http://localhost:3000).
 |----------|---------|
 | `NEXT_PUBLIC_SITE_NAME` | Brand name |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin (no trailing slash) |
-| `CRAKREVENUE_API_KEY` | Crak Performers Ext API key (**server only**) |
-| `CRAKREVENUE_API_TOKEN` | Crak Performers Ext token (**server only**) |
+| `CRAK_API_KEY` | Performers Ext `x-api-key` header (server only; encrypt in Cloudflare) |
+| `CRAK_TOKEN` | Performers Ext `token` query param (**server only**) |
+| `CRAK_CAM_API_BASE` | Optional API URL (default performers-ext endpoint) |
+| `CRAK_BRANDS` | Optional comma brands (default `streamate`) |
+| `CRAK_LANDING_ID` | Affiliate landing / smartlink URL or numeric id |
+| `CRAKREVENUE_API_KEY` / `CRAKREVENUE_API_TOKEN` | Legacy aliases (optional) |
 | `NEXT_PUBLIC_CRAK_SMARTLINK` | Legacy smartlink fallback (optional) |
 | `NEXT_PUBLIC_STRIPCHAT_AFFILIATE_ID` | Stripchat `userId` |
 | `NEXT_PUBLIC_CHATURBATE_AFFILIATE_ID` | Chaturbate campaign id |
 | `NEXT_PUBLIC_DEFAULT_TAGS` | Default mature filters (comma-separated) |
 
 Set the same keys in **Cloudflare Pages → Settings → Environment variables**.
+
+Verify Crak connectivity (no secrets returned): `GET /api/crak/health`
 
 ## Git sync (`main`)
 
