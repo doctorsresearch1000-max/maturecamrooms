@@ -36,7 +36,10 @@ function readFromProcess(key: string): string {
 function getCloudflareEnv(): CloudflareEnvLike | undefined {
   try {
     const ctx = getOptionalRequestContext();
-    return ctx?.env;
+    const env = ctx?.env;
+    return env && typeof env === "object"
+      ? (env as CloudflareEnvLike)
+      : undefined;
   } catch {
     return undefined;
   }
