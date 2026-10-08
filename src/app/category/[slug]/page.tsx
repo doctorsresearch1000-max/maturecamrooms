@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ModelGrid } from "@/components/cams/ModelGrid";
+import { TaxonomyPageShell } from "@/components/seo/TaxonomyPageShell";
 import { getFeaturedModels } from "@/lib/models/getModels";
-import { siteConfig, absoluteUrl } from "@/lib/site";
+import { CATEGORY_DISPLAY, SITE_CATEGORIES, type SiteCategory } from "@/lib/seo/config";
+import { filterModelsByCategory } from "@/lib/seo/filters";
+import { slugify } from "@/lib/seo/slug";
+import { buildTaxonomySeo, taxonomySeoToMetadata } from "@/lib/seo/taxonomySeo";
 
 export const runtime = "edge";
 
-const ALLOWED = new Set(siteConfig.defaultTags);
+const ALLOWED = new Set<string>(SITE_CATEGORIES);
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -14,52 +17,35 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tag = slug.toLowerCase();
+  const tag = slugify(slug);
   if (!ALLOWED.has(tag)) {
     return { title: "Category not found", robots: { index: false } };
   }
-  const title = `${tag.toUpperCase()} Live Cams`;
-  return {
-    title,
-    description: `Watch live ${tag} cam models on ${siteConfig.name}. 18+ sponsored affiliate rooms.`,
-    alternates: { canonical: absoluteUrl(`/category/${tag}`) },
-    openGraph: {
-      title: `${title} | ${siteConfig.name}`,
-      url: absoluteUrl(`/category/${tag}`),
-    },
-  };
+  const label = CATEGORY_DISPLAY[tag as SiteCategory];
+  const result = await getFeaturedModels(96, { tag, live: true });
+  const models = filterModelsByCategory(result.models, tag);
+  const seo = buildTaxonomySeo("category", tag, label, models.length);
+  return taxonomySeoToMetadata(seo);
 }
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const tag = slug.toLowerCase();
+  const tag = slugify(slug);
   if (!ALLOWED.has(tag)) {
     notFound();
   }
 
-  const result = await getFeaturedModels(48, { tag, live: true });
-  const models = result.models.filter((m) =>
-    m.tags.some((t) => t.toLowerCase() === tag),
-  );
+  const label = CATEGORY_DISPLAY[tag as SiteCategory];
+  const result = await getFeaturedModels(96, { tag, live: true });
+  const models = filterModelsByCategory(result.models, tag);
+  const seo = buildTaxonomySeo("category", tag, label, models.length);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-      <h1 className="text-2xl font-bold capitalize text-foreground sm:text-3xl">
-        {tag} live cams
-      </h1>
-      <p className="mt-2 text-sm text-text-secondary">
-        Filtered for <strong className="text-foreground">{tag}</strong>{" "}
-        performers.
-      </p>
-      {result.message ? (
-        <p className="mt-2 text-xs text-text-muted">{result.message}</p>
-      ) : null}
-      <div className="mt-8">
-        <ModelGrid
-          models={models.length ? models : result.models}
-          emptyMessage="No live performers in this category right now."
-        />
-      </div>
-    </div>
+    <TaxonomyPageShell
+      seo={seo}
+      models={models.length ? models : result.models}
+      statusMessage={result.message}
+      emptyMessage="No live performers in this category right now."
+    />
   );
 }

@@ -1,21 +1,19 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, siteConfig } from "@/lib/site";
+import {
+  fetchIndexableModelsForSitemap,
+  modelsToSitemapEntries,
+  staticSitemapEntries,
+} from "@/lib/seo/sitemap";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const categories = siteConfig.defaultTags.map((tag) => ({
-    url: absoluteUrl(`/category/${tag}`),
-    lastModified: new Date(),
-    changeFrequency: "hourly" as const,
-    priority: 0.8,
-  }));
+export const runtime = "edge";
 
-  return [
-    {
-      url: absoluteUrl("/"),
-      lastModified: new Date(),
-      changeFrequency: "hourly",
-      priority: 1,
-    },
-    ...categories,
-  ];
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const entries = staticSitemapEntries();
+
+  try {
+    const models = await fetchIndexableModelsForSitemap();
+    return [...entries, ...modelsToSitemapEntries(models)];
+  } catch {
+    return entries;
+  }
 }

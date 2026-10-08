@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ModelCard } from "@/components/cams/ModelCard";
 import { ProfileHero } from "@/components/profile/ProfileHero";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { countryCodeToFlag, countryLabel } from "@/lib/country";
 import { resolveRoomUrl, roomLinkProps } from "@/lib/models/resolveRoomUrl";
 import type { CamModel } from "@/lib/models/types";
+import type { ModelSEO } from "@/lib/seo/modelSeo";
+import { tagPath } from "@/lib/seo/slug";
 
 type ProfileViewProps = {
   model: CamModel;
   related: CamModel[];
+  seo: ModelSEO;
 };
 
-export function ProfileView({ model, related }: ProfileViewProps) {
+export function ProfileView({ model, related, seo }: ProfileViewProps) {
   const [expanded, setExpanded] = useState(false);
   const roomUrl = resolveRoomUrl(model);
   const flag = countryCodeToFlag(model.countryCode);
@@ -24,12 +29,13 @@ export function ProfileView({ model, related }: ProfileViewProps) {
       <ProfileHero model={model} />
 
       <div className="space-y-6 px-3 py-4 sm:px-6">
+        <Breadcrumbs items={seo.breadcrumbs} className="mb-1" />
+        <p className="text-sm leading-relaxed text-text-secondary">{seo.intro}</p>
+
         <header>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                {model.displayName}
-              </h1>
+              <h1 className="text-2xl font-bold text-foreground">{seo.h1}</h1>
               <p className="mt-1 text-sm text-text-secondary">
                 {model.age !== undefined ? `${model.age}` : null}
                 {model.age !== undefined && country ? " · " : null}
@@ -60,15 +66,16 @@ export function ProfileView({ model, related }: ProfileViewProps) {
             </p>
           ) : null}
 
-          {model.tags.length > 0 ? (
+          {seo.tags.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
-              {model.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
+              {seo.tags.map((tag) => (
+                <Link
+                  key={tag.slug}
+                  href={tagPath(tag.slug)}
+                  className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-text-secondary transition hover:border-accent hover:text-foreground"
                 >
-                  {tag}
-                </span>
+                  {tag.display}
+                </Link>
               ))}
             </div>
           ) : null}
@@ -174,6 +181,29 @@ export function ProfileView({ model, related }: ProfileViewProps) {
             </div>
           </dl>
         </section>
+
+        {seo.internalLinks.length > 0 ? (
+          <section aria-labelledby="discover-heading">
+            <h2
+              id="discover-heading"
+              className="text-sm font-bold uppercase tracking-widest text-text-muted"
+            >
+              Discover more
+            </h2>
+            <ul className="mt-3 flex flex-wrap gap-2" role="list">
+              {seo.internalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary hover:border-accent hover:text-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {related.length > 0 ? (
           <section aria-labelledby="related-heading">

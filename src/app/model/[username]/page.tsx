@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProfileView } from "@/components/profile/ProfileView";
+import { StructuredDataScripts } from "@/components/seo/StructuredDataScripts";
 import {
   getModelByUsername,
   getRelatedModels,
 } from "@/lib/models/getModels";
-import { siteConfig } from "@/lib/site";
+import { buildModelSeo, modelSeoToMetadata } from "@/lib/seo/modelSeo";
 
 export const runtime = "edge";
 
@@ -19,13 +20,10 @@ export async function generateMetadata({
   const { username } = await params;
   const model = await getModelByUsername(username);
   if (!model) {
-    return { title: "Model not found", robots: { index: false } };
+    return { title: "Model not found", robots: { index: false, follow: false } };
   }
-  return {
-    title: `${model.displayName} — Live Cam Profile`,
-    description: `Watch ${model.displayName} (${model.age}) on ${siteConfig.name}. Mature live cam profile — 18+.`,
-    robots: { index: true, follow: true },
-  };
+  const seo = buildModelSeo(model);
+  return modelSeoToMetadata(seo);
 }
 
 export default async function ModelProfilePage({ params }: PageProps) {
@@ -35,6 +33,18 @@ export default async function ModelProfilePage({ params }: PageProps) {
     notFound();
   }
   const related = await getRelatedModels(model, 8);
+  const seo = buildModelSeo(model, related);
 
-  return <ProfileView model={model} related={related} />;
+  const structuredBlocks = [
+    seo.structuredData.breadcrumb,
+    seo.structuredData.webPage,
+    seo.structuredData.profile,
+  ].filter(Boolean);
+
+  return (
+    <>
+      <StructuredDataScripts data={structuredBlocks} />
+      <ProfileView model={model} related={related} seo={seo} />
+    </>
+  );
 }

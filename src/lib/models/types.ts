@@ -30,6 +30,9 @@ export type CamModel = {
   recentlyOnline?: boolean;
 };
 
+/** Normalized performer record (Phase 2) — source of truth for UI + SEO. */
+export type NormalizedModel = CamModel;
+
 export type ModelsResult = {
   models: CamModel[];
   source: "crak" | "unconfigured" | "error";
