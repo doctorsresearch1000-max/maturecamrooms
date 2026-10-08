@@ -1,4 +1,6 @@
-'import React, { useState } from "react";
+'use client';
+
+import React, { useState } from "react";
 import { MOCK_MODELS } from "@/lib/mockModels";
 import ModelCard from "@/components/ModelCard";
 import FilterBar from "@/components/FilterBar";
