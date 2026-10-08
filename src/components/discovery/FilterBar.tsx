@@ -5,6 +5,7 @@ export type DiscoveryFilter =
   | "all"
   | "mature"
   | "milf"
+  | "cougar"
   | "popular"
   | "new";
 
@@ -13,6 +14,7 @@ const FILTERS: { id: DiscoveryFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "mature", label: "Mature" },
   { id: "milf", label: "MILF" },
+  { id: "cougar", label: "Cougar" },
   { id: "popular", label: "Popular" },
   { id: "new", label: "New" },
 ];
@@ -25,7 +27,7 @@ type FilterBarProps = {
 export function FilterBar({ active, onChange }: FilterBarProps) {
   return (
     <div
-      className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="scrollbar-none -mx-1 flex items-center gap-2 overflow-x-auto px-1 py-2"
       role="tablist"
       aria-label="Browse categories"
     >
@@ -38,10 +40,10 @@ export function FilterBar({ active, onChange }: FilterBarProps) {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(filter.id)}
-            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide transition sm:px-4 sm:text-sm sm:normal-case sm:tracking-normal ${
+            className={`min-h-[44px] shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition duration-fast sm:text-sm ${
               isActive
-                ? "bg-rose-600 text-white shadow-md shadow-rose-900/40"
-                : "border border-zinc-800 bg-zinc-900/80 text-zinc-400 hover:border-zinc-600 hover:text-zinc-100"
+                ? "bg-accent text-white"
+                : "border border-border bg-surface text-text-secondary hover:bg-surface-hover hover:text-foreground"
             }`}
           >
             {filter.label}

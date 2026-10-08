@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { HomeDiscovery } from "@/components/discovery/HomeDiscovery";
+import { ModelGridSkeleton } from "@/components/cams/ModelCardSkeleton";
 import { HomeJsonLd } from "@/components/seo/HomeJsonLd";
 import { getFeaturedModels } from "@/lib/models/getModels";
 import { siteConfig } from "@/lib/site";
@@ -23,7 +25,15 @@ export default async function HomePage() {
   return (
     <>
       <HomeJsonLd models={models} />
-      <HomeDiscovery models={models} />
+      <Suspense
+        fallback={
+          <div className="p-4">
+            <ModelGridSkeleton />
+          </div>
+        }
+      >
+        <HomeDiscovery models={models} />
+      </Suspense>
     </>
   );
 }

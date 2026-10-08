@@ -10,7 +10,26 @@ const config: Config = {
     extend: {
       colors: {
         background: "var(--background)",
-        foreground: "var(--foreground)",
+        foreground: "var(--text-primary)",
+        surface: "var(--surface)",
+        "surface-elevated": "var(--surface-elevated)",
+        "surface-hover": "var(--surface-hover)",
+        accent: "var(--accent)",
+        live: "var(--live)",
+        online: "var(--online)",
+        "text-secondary": "var(--text-secondary)",
+        "text-muted": "var(--text-muted)",
+      },
+      borderColor: {
+        DEFAULT: "var(--border)",
+      },
+      borderRadius: {
+        card: "var(--radius-md)",
+      },
+      transitionDuration: {
+        fast: "var(--transition-fast)",
+        base: "var(--transition-base)",
+        drawer: "var(--transition-drawer)",
       },
     },
   },

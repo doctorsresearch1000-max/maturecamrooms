@@ -5,8 +5,8 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-zinc-800/80 bg-zinc-950">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-zinc-500 sm:px-6">
+    <footer className="mt-8 hidden border-t border-border bg-surface lg:block">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-text-secondary sm:px-6">
         <p>
           {siteConfig.name} aggregates sponsored links to third-party live cam
           platforms. All models are 18+.

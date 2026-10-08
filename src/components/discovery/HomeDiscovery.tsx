@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ModelGrid } from "@/components/cams/ModelGrid";
 import { FilterBar, type DiscoveryFilter } from "@/components/discovery/FilterBar";
 import type { CamModel } from "@/lib/models/types";
@@ -21,6 +22,10 @@ function applyFilter(models: CamModel[], filter: DiscoveryFilter): CamModel[] {
       return models.filter((m) =>
         m.tags.some((t) => t.toLowerCase() === "milf"),
       );
+    case "cougar":
+      return models.filter((m) =>
+        m.tags.some((t) => t.toLowerCase() === "cougar"),
+      );
     case "popular":
       return [...models].sort((a, b) => b.viewers - a.viewers);
     case "new":
@@ -31,6 +36,22 @@ function applyFilter(models: CamModel[], filter: DiscoveryFilter): CamModel[] {
   }
 }
 
+function parseFilter(param: string | null): DiscoveryFilter {
+  const allowed: DiscoveryFilter[] = [
+    "live",
+    "all",
+    "mature",
+    "milf",
+    "cougar",
+    "popular",
+    "new",
+  ];
+  if (param && allowed.includes(param as DiscoveryFilter)) {
+    return param as DiscoveryFilter;
+  }
+  return "live";
+}
+
 function DiscoverySection({
   title,
   models,
@@ -38,26 +59,18 @@ function DiscoverySection({
   title: string;
   models: CamModel[];
 }) {
-  if (models.length === 0) {
-    return (
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-zinc-100">{title}</h2>
-        <p className="mt-3 text-sm text-zinc-500">
-          No models match this filter right now. Try another category.
-        </p>
-      </section>
-    );
-  }
-
   return (
-    <section className="mt-8" aria-labelledby={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}>
+    <section
+      className="mt-4 sm:mt-6"
+      aria-labelledby={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
+    >
       <h2
         id={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
-        className="mb-4 flex items-center gap-2 text-lg font-semibold text-zinc-50"
+        className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground sm:text-lg"
       >
         {title === "Live now" ? (
           <span
-            className="inline-flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"
+            className="inline-flex h-2 w-2 rounded-full bg-live shadow-[0_0_8px_rgba(244,63,94,0.7)]"
             aria-hidden
           />
         ) : null}
@@ -69,7 +82,9 @@ function DiscoverySection({
 }
 
 export function HomeDiscovery({ models }: HomeDiscoveryProps) {
-  const [filter, setFilter] = useState<DiscoveryFilter>("live");
+  const searchParams = useSearchParams();
+  const initial = parseFilter(searchParams.get("filter"));
+  const [filter, setFilter] = useState<DiscoveryFilter>(initial);
 
   const filtered = useMemo(
     () => applyFilter(models, filter),
@@ -86,21 +101,21 @@ export function HomeDiscovery({ models }: HomeDiscoveryProps) {
     [models],
   );
 
-  const showLiveSection = filter === "live" || filter === "all";
-  const showPopularSection = filter === "all" || filter === "popular";
+  const liveCount = liveModels.length;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
-      <section aria-labelledby="home-hero" className="mb-4">
+    <div className="px-2 py-3 sm:px-4 sm:py-4 lg:px-6">
+      <section aria-labelledby="home-hero" className="mb-2 sm:mb-3">
         <h1
           id="home-hero"
-          className="text-xl font-bold tracking-tight text-zinc-50 sm:text-2xl"
+          className="text-lg font-bold tracking-tight text-foreground sm:text-xl"
         >
-          Live mature cam discovery
+          {liveCount > 0
+            ? `${liveCount} mature models live now`
+            : "Mature cam discovery"}
         </h1>
-        <p className="mt-1 max-w-2xl text-sm text-zinc-400">
-          Browse live MILF and mature performers. Tap a room to watch — sponsored
-          18+ links.
+        <p className="mt-0.5 text-xs text-text-secondary sm:text-sm">
+          Image-first feed · Sponsored 18+ room links
         </p>
       </section>
 
@@ -117,11 +132,11 @@ export function HomeDiscovery({ models }: HomeDiscoveryProps) {
         />
       ) : (
         <>
-          {showLiveSection && liveModels.length > 0 ? (
+          {liveModels.length > 0 ? (
             <DiscoverySection title="Live now" models={liveModels} />
           ) : null}
           <DiscoverySection title="All models" models={filtered} />
-          {showPopularSection && popularModels.length > 0 ? (
+          {popularModels.length > 0 ? (
             <DiscoverySection title="Popular now" models={popularModels} />
           ) : null}
         </>

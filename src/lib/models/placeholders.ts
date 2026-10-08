@@ -13,6 +13,12 @@ export const PLACEHOLDER_MODELS: CamModel[] = [
     thumbnailUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=640&q=80&auto=format&fit=crop",
     platform: "stripchat",
     countryCode: "US",
+    country: "United States",
+    hair: "Brunette",
+    figure: "Curvy",
+    languages: ["English"],
+    description:
+      "Warm, engaging mature performer with a relaxed room vibe and HD cam.",
   },
   {
     id: "m2",
@@ -70,9 +76,14 @@ export const PLACEHOLDER_MODELS: CamModel[] = [
     tags: ["mature", "cougar", "lingerie"],
     viewers: 621,
     isLive: false,
+    recentlyOnline: true,
     thumbnailUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=640&q=80&auto=format&fit=crop",
     platform: "stripchat",
     countryCode: "FR",
+    country: "France",
+    hair: "Blonde",
+    figure: "Average",
+    description: "Elegant mature room — check back for live schedule.",
   },
   {
     id: "m7",
