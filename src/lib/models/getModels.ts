@@ -40,13 +40,18 @@ async function queryFeed(options: ModelQuery = {}): Promise<ModelsResult> {
 
     return { models, source: "crak" };
   } catch (err) {
+    const base =
+      err instanceof Error
+        ? err.message
+        : "Unable to load performers at this time.";
+    const detail =
+      err && typeof err === "object" && "detail" in err
+        ? String((err as { detail?: string }).detail)
+        : undefined;
     return {
       models: [],
       source: "error",
-      message:
-        err instanceof Error
-          ? err.message
-          : "Unable to load performers at this time.",
+      message: detail ? `${base} (${detail})` : base,
     };
   }
 }
