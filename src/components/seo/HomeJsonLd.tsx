@@ -1,6 +1,6 @@
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import type { CamModel } from "@/lib/models/types";
-import { buildAffiliateRoomUrl } from "@/lib/affiliate/links";
+import { resolveRoomUrl } from "@/lib/models/resolveRoomUrl";
 
 type HomeJsonLdProps = {
   models: CamModel[];
@@ -33,8 +33,7 @@ export function HomeJsonLd({ models }: HomeJsonLdProps) {
         name: `${model.displayName} live cam`,
         description: `Live ${model.tags.join(", ")} cam show — 18+`,
         thumbnailUrl: model.thumbnailUrl,
-        uploadDate: new Date().toISOString().split("T")[0],
-        contentUrl: buildAffiliateRoomUrl(model.platform, model.username),
+        contentUrl: resolveRoomUrl(model),
         isLiveBroadcast: model.isLive,
       },
     })),

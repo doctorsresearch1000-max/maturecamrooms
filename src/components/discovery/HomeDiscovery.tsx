@@ -8,6 +8,8 @@ import type { CamModel } from "@/lib/models/types";
 
 type HomeDiscoveryProps = {
   models: CamModel[];
+  statusMessage?: string;
+  unconfigured?: boolean;
 };
 
 function applyFilter(models: CamModel[], filter: DiscoveryFilter): CamModel[] {
@@ -27,7 +29,9 @@ function applyFilter(models: CamModel[], filter: DiscoveryFilter): CamModel[] {
         m.tags.some((t) => t.toLowerCase() === "cougar"),
       );
     case "popular":
-      return [...models].sort((a, b) => b.viewers - a.viewers);
+      return [...models].sort(
+        (a, b) => (b.score ?? 0) - (a.score ?? 0) || (b.viewers ?? 0) - (a.viewers ?? 0),
+      );
     case "new":
       return [...models].reverse();
     case "all":
@@ -81,7 +85,11 @@ function DiscoverySection({
   );
 }
 
-export function HomeDiscovery({ models }: HomeDiscoveryProps) {
+export function HomeDiscovery({
+  models,
+  statusMessage,
+  unconfigured,
+}: HomeDiscoveryProps) {
   const searchParams = useSearchParams();
   const initial = parseFilter(searchParams.get("filter"));
   const [filter, setFilter] = useState<DiscoveryFilter>(initial);
@@ -97,7 +105,10 @@ export function HomeDiscovery({ models }: HomeDiscoveryProps) {
   );
 
   const popularModels = useMemo(
-    () => [...models].sort((a, b) => b.viewers - a.viewers).slice(0, 8),
+    () =>
+      [...models]
+        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+        .slice(0, 8),
     [models],
   );
 
@@ -115,13 +126,26 @@ export function HomeDiscovery({ models }: HomeDiscoveryProps) {
             : "Mature cam discovery"}
         </h1>
         <p className="mt-0.5 text-xs text-text-secondary sm:text-sm">
-          Image-first feed · Sponsored 18+ room links
+          Real performer data via CrakRevenue · 18+ sponsored room links
         </p>
+        {unconfigured ? (
+          <p className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            {statusMessage}
+          </p>
+        ) : statusMessage ? (
+          <p className="mt-2 text-xs text-text-muted">{statusMessage}</p>
+        ) : null}
       </section>
 
       <FilterBar active={filter} onChange={setFilter} />
 
-      {filter !== "all" ? (
+      {models.length === 0 ? (
+        <p className="mt-6 rounded-card border border-border bg-surface px-4 py-10 text-center text-sm text-text-secondary">
+          {unconfigured
+            ? "Configure server credentials to load live performers."
+            : "No performers match this view. Try another filter."}
+        </p>
+      ) : filter !== "all" ? (
         <DiscoverySection
           title={
             filter === "live"

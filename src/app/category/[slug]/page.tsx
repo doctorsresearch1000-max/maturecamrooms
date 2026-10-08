@@ -37,21 +37,28 @@ export default async function CategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  const all = await getFeaturedModels(48);
-  const models = all.filter((m) =>
+  const result = await getFeaturedModels(48, { tag, live: true });
+  const models = result.models.filter((m) =>
     m.tags.some((t) => t.toLowerCase() === tag),
   );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-      <h1 className="text-2xl font-bold capitalize text-zinc-50 sm:text-3xl">
+      <h1 className="text-2xl font-bold capitalize text-foreground sm:text-3xl">
         {tag} live cams
       </h1>
-      <p className="mt-2 text-sm text-zinc-400">
-        Filtered for <strong className="text-zinc-300">{tag}</strong> performers.
+      <p className="mt-2 text-sm text-text-secondary">
+        Filtered for <strong className="text-foreground">{tag}</strong>{" "}
+        performers.
       </p>
+      {result.message ? (
+        <p className="mt-2 text-xs text-text-muted">{result.message}</p>
+      ) : null}
       <div className="mt-8">
-        <ModelGrid models={models.length ? models : all} />
+        <ModelGrid
+          models={models.length ? models : result.models}
+          emptyMessage="No live performers in this category right now."
+        />
       </div>
     </div>
   );

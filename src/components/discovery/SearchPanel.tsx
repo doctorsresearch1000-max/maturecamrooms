@@ -4,39 +4,50 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useShell } from "@/components/layout/ShellContext";
 import { countryLabel } from "@/lib/country";
-import type { CamModel } from "@/lib/models/types";
+import type { CamModel, ModelsResult } from "@/lib/models/types";
 
 export function SearchPanel() {
   const { searchOpen, setSearchOpen } = useShell();
   const [query, setQuery] = useState("");
-  const [models, setModels] = useState<CamModel[]>([]);
+  const [catalog, setCatalog] = useState<CamModel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState<CamModel[] | null>(null);
 
   useEffect(() => {
-    if (!searchOpen || models.length > 0) return;
+    if (!searchOpen || catalog.length > 0) return;
     setLoading(true);
     fetch("/api/models")
       .then((r) => r.json())
-      .then((data: CamModel[]) => setModels(data))
-      .catch(() => setModels([]))
+      .then((data: ModelsResult) => setCatalog(data.models ?? []))
+      .catch(() => setCatalog([]))
       .finally(() => setLoading(false));
-  }, [searchOpen, models.length]);
+  }, [searchOpen, catalog.length]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setSearchResult(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      fetch(`/api/models?q=${encodeURIComponent(q)}`)
+        .then((r) => r.json())
+        .then((data: ModelsResult) => setSearchResult(data.models ?? []))
+        .catch(() => setSearchResult([]));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [query]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return { models: [], categories: [] as string[] };
-    const matched = models.filter(
-      (m) =>
-        m.displayName.toLowerCase().includes(q) ||
-        m.username.toLowerCase().includes(q) ||
-        m.tags.some((t) => t.toLowerCase().includes(q)) ||
-        countryLabel(m.countryCode, m.country).toLowerCase().includes(q),
-    );
+    const pool = searchResult ?? (q ? [] : catalog);
+    if (!q) return { models: pool.slice(0, 12), categories: [] as string[] };
+
     const categories = ["mature", "milf", "cougar"].filter((c) =>
       c.includes(q),
     );
-    return { models: matched.slice(0, 12), categories };
-  }, [query, models]);
+    return { models: pool, categories };
+  }, [query, catalog, searchResult]);
 
   const close = useCallback(() => setSearchOpen(false), [setSearchOpen]);
 
@@ -65,7 +76,7 @@ export function SearchPanel() {
         {loading ? (
           <p className="text-sm text-text-muted">Loading…</p>
         ) : query.trim() === "" ? (
-          <p className="text-sm text-text-muted">Type to search the catalog.</p>
+          <p className="text-sm text-text-muted">Type to search performers.</p>
         ) : results.models.length === 0 && results.categories.length === 0 ? (
           <p className="text-sm text-text-secondary">
             No results for &ldquo;{query}&rdquo;.
@@ -81,17 +92,19 @@ export function SearchPanel() {
                   {results.models.map((m) => (
                     <li key={m.id}>
                       <Link
-                        href={
-                          m.isLive
-                            ? `/model/${m.username}`
-                            : `/model/${m.username}`
-                        }
+                        href={`/model/${m.username}`}
                         onClick={close}
                         className="flex min-h-[44px] items-center justify-between rounded-md px-3 py-2 hover:bg-surface-hover"
                       >
-                        <span className="font-medium">{m.displayName}</span>
+                        <span className="font-medium">
+                          {m.displayName}
+                          {m.isLive ? (
+                            <span className="ml-2 text-xs text-live">LIVE</span>
+                          ) : null}
+                        </span>
                         <span className="text-xs text-text-secondary">
-                          {m.age} · {countryLabel(m.countryCode, m.country)}
+                          {m.age !== undefined ? `${m.age} · ` : ""}
+                          {countryLabel(m.countryCode, m.country)}
                         </span>
                       </Link>
                     </li>

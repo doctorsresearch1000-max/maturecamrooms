@@ -11,7 +11,7 @@ export const runtime = "edge";
 export const metadata: Metadata = {
   title: "Live Mature & MILF Cams",
   description:
-    "Browse live mature, MILF, cougar, and mom cam models. Sponsored 18+ affiliate links to Stripchat, Chaturbate, and smartlinks.",
+    "Browse live mature, MILF, cougar, and mom cam models. Sponsored 18+ affiliate links.",
   openGraph: {
     title: `Live Mature & MILF Cams | ${siteConfig.name}`,
     description:
@@ -20,11 +20,11 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const models = await getFeaturedModels(24);
+  const result = await getFeaturedModels(24);
 
   return (
     <>
-      <HomeJsonLd models={models} />
+      {result.models.length > 0 ? <HomeJsonLd models={result.models} /> : null}
       <Suspense
         fallback={
           <div className="p-4">
@@ -32,7 +32,11 @@ export default async function HomePage() {
           </div>
         }
       >
-        <HomeDiscovery models={models} />
+        <HomeDiscovery
+          models={result.models}
+          statusMessage={result.message}
+          unconfigured={result.source === "unconfigured" || result.source === "error"}
+        />
       </Suspense>
     </>
   );

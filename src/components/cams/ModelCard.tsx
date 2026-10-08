@@ -1,10 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FavoriteButton } from "@/components/cams/FavoriteButton";
-import {
-  affiliateLinkProps,
-  buildAffiliateRoomUrl,
-} from "@/lib/affiliate/links";
 import { countryCodeToFlag, countryLabel } from "@/lib/country";
 import type { CamModel } from "@/lib/models/types";
 
@@ -14,10 +10,7 @@ type ModelCardProps = {
 };
 
 export function ModelCard({ model, priority = false }: ModelCardProps) {
-  const roomHref = buildAffiliateRoomUrl(model.platform, model.username);
   const profileHref = `/model/${model.username}`;
-  const href = model.isLive ? roomHref : profileHref;
-  const linkProps = model.isLive ? affiliateLinkProps() : {};
   const flag = countryCodeToFlag(model.countryCode);
   const country = countryLabel(model.countryCode, model.country);
   const categoryLine = model.tags
@@ -30,9 +23,10 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
 
   const inner = (
     <>
+      {model.thumbnailUrl ? (
         <Image
           src={model.thumbnailUrl}
-          alt={`${model.displayName}, ${model.age}`}
+          alt={`${model.displayName}${model.age ? `, ${model.age}` : ""}`}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
           className={`object-cover transition duration-base group-hover:scale-[1.03] ${
@@ -41,84 +35,76 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
           loading={priority ? "eager" : "lazy"}
           priority={priority}
         />
+      ) : (
+        <div className="absolute inset-0 bg-surface-hover" />
+      )}
 
-        {model.isLive ? (
-          <span
-            className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-md bg-live px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
-            Live
-          </span>
-        ) : (
-          <span
-            className="absolute left-1.5 top-1.5 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-semibold uppercase text-text-secondary backdrop-blur-sm"
-          >
-            {model.recentlyOnline ? "Recently online" : "Offline"}
-          </span>
-        )}
-
-        <div className="absolute right-1.5 top-1.5 z-10">
-          <FavoriteButton modelId={model.id} />
-        </div>
-
-        <div
-          className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2 pb-2 pt-10"
+      {model.isLive ? (
+        <span
+          className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-md bg-live px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
         >
-          <p className="truncate text-[15px] font-semibold leading-tight text-white">
-            {model.displayName}
+          <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
+          Live
+        </span>
+      ) : (
+        <span
+          className="absolute left-1.5 top-1.5 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-semibold uppercase text-text-secondary backdrop-blur-sm"
+        >
+          {model.recentlyOnline ? "Recently online" : "Offline"}
+        </span>
+      )}
+
+      <div className="absolute right-1.5 top-1.5 z-10">
+        <FavoriteButton modelId={model.id} />
+      </div>
+
+      <div
+        className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2 pb-2 pt-10"
+      >
+        <p className="truncate text-[15px] font-semibold leading-tight text-white">
+          {model.displayName}
+          {model.age ? (
             <span className="font-normal text-white/80"> · {model.age}</span>
-            {flag ? (
-              <span className="ml-1 text-sm" aria-hidden>{flag}</span>
-            ) : null}
+          ) : null}
+          {flag ? (
+            <span className="ml-1 text-sm" aria-hidden>{flag}</span>
+          ) : null}
+        </p>
+        {country ? (
+          <p className="truncate text-[11px] text-white/70">{country}</p>
+        ) : null}
+        {categoryLine ? (
+          <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-wide text-white/55">
+            {categoryLine}
           </p>
-          {country ? (
-            <p className="truncate text-[11px] text-white/70">{country}</p>
-          ) : null}
-          {categoryLine ? (
-            <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-wide text-white/55">
-              {categoryLine}
-            </p>
-          ) : null}
+        ) : null}
+        {model.viewers !== undefined && model.viewers > 0 ? (
           <p className="mt-1 flex items-center justify-end gap-1 text-[11px] font-medium text-white/90">
             <span aria-hidden>👁</span>
-            {model.isLive
-              ? model.viewers.toLocaleString()
-              : model.recentlyOnline
-                ? "—"
-                : "0"}
+            {model.viewers.toLocaleString()}
           </p>
-        </div>
+        ) : null}
+      </div>
 
-        <span
-          className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition duration-base group-hover:opacity-100 md:flex"
-        >
-          <span className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-lg">
-            {model.isLive ? "Watch live" : "View profile"}
-          </span>
+      <span
+        className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/40 opacity-0 transition duration-base group-hover:opacity-100 md:flex"
+      >
+        <span className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-lg">
+          {model.isLive ? "Watch live" : "View profile"}
         </span>
+      </span>
     </>
   );
 
   return (
     <article className="group relative">
-      {model.isLive ? (
-        <a
-          href={href}
-          className={cardClass}
-          {...linkProps}
-          aria-label={`Watch ${model.displayName} live — 18+ sponsored`}
-        >
-          {inner}
-        </a>
-      ) : (
-        <Link
-          href={profileHref}
-          className={cardClass}
-          aria-label={`View ${model.displayName} profile`}
-        >
-          {inner}
-        </Link>
-      )}
+      <Link
+        href={profileHref}
+        className={cardClass}
+        aria-label={`View ${model.displayName} profile`}
+      >
+        {inner}
+      </Link>
     </article>
   );
 }

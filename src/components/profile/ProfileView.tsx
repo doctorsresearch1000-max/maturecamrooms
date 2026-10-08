@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  affiliateLinkProps,
-  buildAffiliateRoomUrl,
-} from "@/lib/affiliate/links";
-import { countryCodeToFlag, countryLabel } from "@/lib/country";
-import { ProfileHero } from "@/components/profile/ProfileHero";
 import { ModelCard } from "@/components/cams/ModelCard";
+import { ProfileHero } from "@/components/profile/ProfileHero";
+import { countryCodeToFlag, countryLabel } from "@/lib/country";
+import { resolveRoomUrl, roomLinkProps } from "@/lib/models/resolveRoomUrl";
 import type { CamModel } from "@/lib/models/types";
 
 type ProfileViewProps = {
@@ -17,12 +14,10 @@ type ProfileViewProps = {
 
 export function ProfileView({ model, related }: ProfileViewProps) {
   const [expanded, setExpanded] = useState(false);
-  const roomUrl = buildAffiliateRoomUrl(model.platform, model.username);
+  const roomUrl = resolveRoomUrl(model);
   const flag = countryCodeToFlag(model.countryCode);
   const country = countryLabel(model.countryCode, model.country);
-  const description =
-    model.description ??
-    `${model.displayName} streams on ${model.platform}. 18+ only.`;
+  const description = model.description?.trim();
 
   return (
     <div className="pb-4">
@@ -36,9 +31,10 @@ export function ProfileView({ model, related }: ProfileViewProps) {
                 {model.displayName}
               </h1>
               <p className="mt-1 text-sm text-text-secondary">
-                {model.age}
-                {country ? ` · ${country}` : ""}
-                {flag ? ` ${flag}` : ""}
+                {model.age !== undefined ? `${model.age}` : null}
+                {model.age !== undefined && country ? " · " : null}
+                {country ?? null}
+                {flag ? ` ${flag}` : null}
                 {" · "}
                 <span
                   className={
@@ -58,59 +54,81 @@ export function ProfileView({ model, related }: ProfileViewProps) {
             </span>
           </div>
 
-          {model.isLive ? (
-            <p className="mt-2 text-sm font-medium text-foreground">
-              {model.viewers.toLocaleString()} watching
+          {model.stars !== undefined && model.stars > 0 ? (
+            <p className="mt-2 text-sm text-text-secondary">
+              Rating: {model.stars}★
             </p>
           ) : null}
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {model.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          {model.tags.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {model.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
           <a
             href={roomUrl}
             className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-card bg-accent text-base font-semibold text-white transition hover:bg-accent-hover sm:max-w-md"
-            {...affiliateLinkProps()}
+            {...roomLinkProps(model)}
           >
             {model.isLive ? "Enter live room" : "View room when live"}
           </a>
           <p className="mt-2 text-[11px] text-text-muted">
-            Sponsored link · 18+ only · {AFFILIATE_NOTE}
+            Sponsored link · 18+ only · nofollow sponsored
           </p>
         </header>
 
-        <section aria-labelledby="about-heading">
-          <h2
-            id="about-heading"
-            className="text-sm font-bold uppercase tracking-widest text-text-muted"
-          >
-            About {model.displayName}
-          </h2>
-          <p
-            className={`mt-2 text-sm leading-relaxed text-text-secondary ${
-              expanded ? "" : "line-clamp-3"
-            }`}
-          >
-            {description}
-          </p>
-          {description.length > 120 ? (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="mt-2 text-sm font-medium text-accent"
+        {description ? (
+          <section aria-labelledby="about-heading">
+            <h2
+              id="about-heading"
+              className="text-sm font-bold uppercase tracking-widest text-text-muted"
             >
-              {expanded ? "Show less" : "Show more"}
-            </button>
-          ) : null}
-        </section>
+              About {model.displayName}
+            </h2>
+            <p
+              className={`mt-2 text-sm leading-relaxed text-text-secondary ${
+                expanded ? "" : "line-clamp-4"
+              }`}
+            >
+              {description}
+            </p>
+            {description.length > 160 ? (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="mt-2 text-sm font-medium text-accent"
+              >
+                {expanded ? "Show less" : "Show more"}
+              </button>
+            ) : null}
+          </section>
+        ) : null}
+
+        {model.expertise ? (
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">
+              Expertise
+            </h2>
+            <p className="mt-2 text-sm text-text-secondary">{model.expertise}</p>
+          </section>
+        ) : null}
+
+        {model.turnOns ? (
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">
+              Turn-ons
+            </h2>
+            <p className="mt-2 text-sm text-text-secondary">{model.turnOns}</p>
+          </section>
+        ) : null}
 
         <section aria-labelledby="profile-heading">
           <h2
@@ -120,28 +138,36 @@ export function ProfileView({ model, related }: ProfileViewProps) {
             Profile
           </h2>
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-text-muted">Age</dt>
-              <dd className="font-medium">{model.age}</dd>
-            </div>
-            <div>
-              <dt className="text-text-muted">Country</dt>
-              <dd className="font-medium">{country || "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-text-muted">Hair</dt>
-              <dd className="font-medium">{model.hair ?? "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-text-muted">Figure</dt>
-              <dd className="font-medium">{model.figure ?? "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-text-muted">Languages</dt>
-              <dd className="font-medium">
-                {model.languages?.join(", ") ?? "—"}
-              </dd>
-            </div>
+            {model.age !== undefined ? (
+              <div>
+                <dt className="text-text-muted">Age</dt>
+                <dd className="font-medium">{model.age}</dd>
+              </div>
+            ) : null}
+            {country ? (
+              <div>
+                <dt className="text-text-muted">Country</dt>
+                <dd className="font-medium">{country}</dd>
+              </div>
+            ) : null}
+            {model.hair ? (
+              <div>
+                <dt className="text-text-muted">Hair</dt>
+                <dd className="font-medium">{model.hair}</dd>
+              </div>
+            ) : null}
+            {model.figure ? (
+              <div>
+                <dt className="text-text-muted">Figure</dt>
+                <dd className="font-medium">{model.figure}</dd>
+              </div>
+            ) : null}
+            {model.languages && model.languages.length > 0 ? (
+              <div>
+                <dt className="text-text-muted">Languages</dt>
+                <dd className="font-medium">{model.languages.join(", ")}</dd>
+              </div>
+            ) : null}
             <div>
               <dt className="text-text-muted">Platform</dt>
               <dd className="font-medium capitalize">{model.platform}</dd>
@@ -176,5 +202,3 @@ export function ProfileView({ model, related }: ProfileViewProps) {
     </div>
   );
 }
-
-const AFFILIATE_NOTE = "nofollow sponsored";

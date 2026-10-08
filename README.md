@@ -25,7 +25,9 @@ Open [http://localhost:3000](http://localhost:3000).
 |----------|---------|
 | `NEXT_PUBLIC_SITE_NAME` | Brand name |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin (no trailing slash) |
-| `NEXT_PUBLIC_CRAK_SMARTLINK` | CrakRevenue smartlink base URL |
+| `CRAKREVENUE_API_KEY` | Crak Performers Ext API key (**server only**) |
+| `CRAKREVENUE_API_TOKEN` | Crak Performers Ext token (**server only**) |
+| `NEXT_PUBLIC_CRAK_SMARTLINK` | Legacy smartlink fallback (optional) |
 | `NEXT_PUBLIC_STRIPCHAT_AFFILIATE_ID` | Stripchat `userId` |
 | `NEXT_PUBLIC_CHATURBATE_AFFILIATE_ID` | Chaturbate campaign id |
 | `NEXT_PUBLIC_DEFAULT_TAGS` | Default mature filters (comma-separated) |
