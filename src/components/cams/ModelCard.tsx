@@ -18,7 +18,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
     .join(" · ");
 
   const cardClass =
-    "relative block aspect-[3/4] overflow-hidden rounded-card bg-surface-elevated";
+    "relative block aspect-[3/4] overflow-hidden rounded-[10px] border border-white/[0.06] bg-surface-elevated sm:rounded-card";
 
   const inner = (
     <>
@@ -26,8 +26,8 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
         <img
           src={model.thumbnailUrl}
           alt={`${model.displayName}${model.age ? `, ${model.age}` : ""}`}
-          className={`absolute inset-0 h-full w-full object-cover transition duration-base group-hover:scale-[1.03] ${
-            model.isLive ? "" : "opacity-85 saturate-[0.85]"
+          className={`absolute inset-0 h-full w-full object-cover transition duration-base group-hover:scale-[1.02] ${
+            model.isLive ? "" : "opacity-90 saturate-[0.9]"
           }`}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
@@ -38,49 +38,47 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
 
       {model.isLive ? (
         <span
-          className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-md bg-live px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+          className="absolute left-1 top-1 flex items-center gap-0.5 rounded bg-live/95 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white sm:left-1.5 sm:top-1.5 sm:gap-1 sm:px-2 sm:text-[10px]"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
+          <span className="h-1 w-1 rounded-full bg-white sm:h-1.5 sm:w-1.5" aria-hidden />
           Live
         </span>
       ) : (
         <span
-          className="absolute left-1.5 top-1.5 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-semibold uppercase text-text-secondary backdrop-blur-sm"
+          className="absolute left-1 top-1 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-medium uppercase text-white/80 sm:left-1.5 sm:top-1.5 sm:text-[10px]"
         >
-          {model.recentlyOnline ? "Recently online" : "Offline"}
+          {model.recentlyOnline ? "Recent" : "Off"}
         </span>
       )}
 
-      <div className="absolute right-1.5 top-1.5 z-10">
+      <div className="absolute right-1 top-1 z-10 sm:right-1.5 sm:top-1.5">
         <FavoriteButton modelId={model.id} />
       </div>
 
       <div
-        className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2 pb-2 pt-10"
+        className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/45 to-transparent px-1.5 pb-1.5 pt-6 sm:px-2 sm:pb-2 sm:pt-8"
       >
-        <p className="truncate text-[15px] font-semibold leading-tight text-white">
+        <p className="truncate text-[13px] font-semibold leading-tight text-white sm:text-[15px]">
           {model.displayName}
           {model.age ? (
-            <span className="font-normal text-white/80"> · {model.age}</span>
+            <span className="font-normal text-white/85"> · {model.age}</span>
           ) : null}
           {flag ? (
-            <span className="ml-1 text-sm" aria-hidden>{flag}</span>
+            <span className="ml-0.5 text-xs sm:ml-1 sm:text-sm" aria-hidden>
+              {flag}
+            </span>
           ) : null}
         </p>
-        {country ? (
-          <p className="truncate text-[11px] text-white/70">{country}</p>
-        ) : null}
-        {categoryLine ? (
-          <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-wide text-white/55">
-            {categoryLine}
-          </p>
-        ) : null}
-        {model.viewers !== undefined && model.viewers > 0 ? (
-          <p className="mt-1 flex items-center justify-end gap-1 text-[11px] font-medium text-white/90">
-            <span aria-hidden>👁</span>
-            {model.viewers.toLocaleString()}
-          </p>
-        ) : null}
+        <div className="mt-0.5 flex items-center justify-between gap-1 text-[10px] text-white/65 sm:text-[11px]">
+          <span className="min-w-0 truncate">
+            {country || categoryLine || "\u00a0"}
+          </span>
+          {model.viewers !== undefined && model.viewers > 0 ? (
+            <span className="shrink-0 font-medium text-white/85">
+              {model.viewers.toLocaleString()}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       <span

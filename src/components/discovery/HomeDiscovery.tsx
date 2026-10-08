@@ -65,16 +65,16 @@ function DiscoverySection({
 }) {
   return (
     <section
-      className="mt-4 sm:mt-6"
+      className="mt-2 sm:mt-6"
       aria-labelledby={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
     >
       <h2
         id={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
-        className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground sm:text-lg"
+        className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-foreground sm:mb-3 sm:gap-2 sm:text-lg"
       >
         {title === "Live now" ? (
           <span
-            className="inline-flex h-2 w-2 rounded-full bg-live shadow-[0_0_8px_rgba(244,63,94,0.7)]"
+            className="inline-flex h-1.5 w-1.5 rounded-full bg-live sm:h-2 sm:w-2"
             aria-hidden
           />
         ) : null}
@@ -115,17 +115,17 @@ export function HomeDiscovery({
   const liveCount = liveModels.length;
 
   return (
-    <div className="px-2 py-3 sm:px-4 sm:py-4 lg:px-6">
-      <section aria-labelledby="home-hero" className="mb-2 sm:mb-3">
+    <div className="px-1.5 py-2 sm:px-4 sm:py-4 lg:px-6">
+      <section aria-labelledby="home-hero" className="mb-1 sm:mb-3">
         <h1
           id="home-hero"
-          className="text-lg font-bold tracking-tight text-foreground sm:text-xl"
+          className="text-base font-bold tracking-tight text-foreground sm:text-xl"
         >
           {liveCount > 0
             ? `${liveCount} mature models live now`
             : "Mature cam discovery"}
         </h1>
-        <p className="mt-0.5 text-xs text-text-secondary sm:text-sm">
+        <p className="mt-0.5 text-[11px] leading-snug text-text-secondary sm:text-sm">
           Real performer data via CrakRevenue · 18+ sponsored room links
         </p>
         {unconfigured ? (

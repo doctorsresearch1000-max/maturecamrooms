@@ -27,7 +27,7 @@ type FilterBarProps = {
 export function FilterBar({ active, onChange }: FilterBarProps) {
   return (
     <div
-      className="scrollbar-none -mx-1 flex items-center gap-2 overflow-x-auto px-1 py-2"
+      className="scrollbar-none -mx-0.5 flex items-center gap-1.5 overflow-x-auto px-0.5 py-1 lg:gap-2 lg:py-2"
       role="tablist"
       aria-label="Browse categories"
     >
@@ -40,10 +40,10 @@ export function FilterBar({ active, onChange }: FilterBarProps) {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(filter.id)}
-            className={`min-h-[44px] shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition duration-fast sm:text-sm ${
+            className={`min-h-[34px] shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold transition duration-fast sm:min-h-[40px] sm:px-4 sm:py-2 sm:text-xs lg:text-sm ${
               isActive
-                ? "bg-accent text-white"
-                : "border border-border bg-surface text-text-secondary hover:bg-surface-hover hover:text-foreground"
+                ? "bg-accent text-white shadow-sm"
+                : "border border-border/80 bg-surface-elevated/80 text-text-secondary hover:bg-surface-hover hover:text-foreground"
             }`}
           >
             {filter.label}

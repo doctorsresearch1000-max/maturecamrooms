@@ -20,7 +20,7 @@ export function ModelGrid({
 
   return (
     <ul
-      className="grid grid-cols-2 gap-1.5 sm:gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+      className="grid grid-cols-2 gap-1 sm:gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
       role="list"
     >
       {models.map((model, index) => (

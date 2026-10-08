@@ -18,8 +18,7 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --header-h: 3.25rem;
-  --bottom-nav-h: 3.75rem;
+  --header-h: 3rem;
   --transition-fast: 150ms;
   --transition-base: 200ms;
   --transition-drawer: 300ms;
@@ -58,7 +57,7 @@ body {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
-  .safe-pb-nav {
-    padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+  .safe-pb-mobile {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
