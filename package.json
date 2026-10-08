@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
+    "generate:sitemap": "npx tsx scripts/generate-sitemap.ts",
+    "pages:build": "npm run generate:sitemap && npx @cloudflare/next-on-pages",
     "preview:cf": "npm run pages:build && npx wrangler pages dev .vercel/output/static",
     "start": "next start",
     "lint": "next lint",

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useShell } from "@/components/layout/ShellContext";
 import { siteConfig } from "@/lib/site";
@@ -36,9 +37,14 @@ export function SiteHeader() {
           href="/"
           className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center leading-tight lg:static lg:translate-x-0 lg:items-start"
         >
-          <span className="text-base font-bold tracking-tight text-accent sm:text-lg">
-            {siteConfig.name}
-          </span>
+          <Image
+            src="/maturecamrooms-logo.png"
+            alt={siteConfig.name}
+            width={216}
+            height={72}
+            className="h-8 w-auto sm:h-9"
+            priority
+          />
           <span className="hidden text-[10px] uppercase tracking-widest text-text-muted lg:block">
             Mature · MILF · Cougar
           </span>
