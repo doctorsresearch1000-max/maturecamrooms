@@ -15,11 +15,16 @@ export function ModelCardLiveMedia({
   priority = false,
 }: ModelCardLiveMediaProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [streamActive, setStreamActive] = useState(priority);
+  const [streamActive, setStreamActive] = useState(false);
   const safeStreamUrl = pickSafeStreamUrl(model.iframeFeedUrl);
 
   useEffect(() => {
-    if (!model.isLive || !safeStreamUrl || priority) return;
+    if (!model.isLive || !safeStreamUrl) return;
+
+    if (priority) {
+      setStreamActive(true);
+      return;
+    }
 
     const node = rootRef.current;
     if (!node) return;
