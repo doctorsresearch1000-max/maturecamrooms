@@ -5,72 +5,52 @@ interface ModelCardProps {
   model: Model;
 }
 
-export const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
+export default function ModelCard({ model }: ModelCardProps) {
   return (
-    <a
-      href={model.destinationUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group bg-gray-900 border border-gray-800/80 rounded-xl overflow-hidden hover:border-rose-500/40 transition-all duration-300 flex flex-col shadow-lg hover:shadow-rose-500/10"
-    >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-gray-950">
+    <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-rose-500 transition-all duration-300 group shadow-lg">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gray-950">
         <img
-          src={model.thumbnail}
-          alt={model.displayName}
-          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
+          src={model.thumbnailUrl}
+          alt={model.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent opacity-60"></div>
-        <div className="absolute top-3 left-3 flex items-center gap-2">
-          {model.isLive ? (
-            <span className="bg-rose-600/95 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-md">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        <div className="absolute top-3 left-3 flex gap-2">
+          {model.isOnline && (
+            <span className="bg-emerald-500 text-gray-950 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow">
+              <span className="w-2 h-2 rounded-full bg-gray-950 animate-pulse"></span>
               LIVE
             </span>
-          ) : (
-            <span className="bg-gray-800/90 backdrop-blur-md text-gray-300 text-xs font-semibold px-2.5 py-1 rounded-md">
-              OFFLINE
+          )}
+          {model.isHD && (
+            <span className="bg-rose-600 text-white text-xs font-bold px-2 py-1 rounded-md uppercase">
+              HD
             </span>
           )}
         </div>
-        {model.isLive && model.viewerCount && (
-          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-gray-200 text-xs font-medium px-2 py-1 rounded-md">
-            👥 {model.viewerCount.toLocaleString()}
-          </div>
-        )}
-        <div className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block">
-          <div className="w-full bg-rose-600 hover:bg-rose-500 text-white text-center font-bold text-sm py-2.5 rounded-lg shadow-lg">
-            {model.isLive ? 'Watch Live ➔' : 'View Profile'}
-          </div>
+        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-md font-medium">
+          👀 {model.viewers.toLocaleString()}
         </div>
       </div>
-      <div className="p-4 flex flex-col flex-grow justify-between bg-gray-900">
-        <div>
-          <div className="flex justify-between items-baseline">
-            <h4 className="font-bold text-white text-base group-hover:text-rose-400 transition-colors truncate">
-              {model.displayName}
-            </h4>
-            {model.age && (
-              <span className="text-sm font-semibold text-rose-400 ml-2">
-                {model.age} yrs
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-            <span>📍</span> {model.country || 'International'}
-          </p>
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-1">
+          <h3 className="font-bold text-lg text-white group-hover:text-rose-400 transition-colors">
+            {model.name} <span className="text-gray-400 font-normal text-sm">({model.age})</span>
+          </h3>
+          <span className="text-amber-400 text-sm font-semibold flex items-center gap-1">
+            ★ {model.rating}
+          </span>
         </div>
-        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-800/60">
-          {model.categories.map((cat) => (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {model.tags.map((tag, index) => (
             <span
-              key={cat}
-              className="text-[10px] uppercase tracking-wider bg-gray-800 text-gray-300 px-2 py-0.5 rounded font-medium"
+              key={index}
+              className="bg-gray-800 text-gray-300 text-xs px-2.5 py-0.5 rounded-full"
             >
-              {cat}
+              {tag}
             </span>
           ))}
         </div>
       </div>
-    </a>
+    </div>
   );
-};
+}

@@ -1,16 +1,13 @@
 export interface Model {
   id: string;
-  username: string;
-  displayName: string;
-  age?: number;
-  country?: string;
-  countryCode?: string;
-  categories: string[];
-  thumbnail: string;
-  previewUrl?: string;
-  isLive: boolean;
-  viewerCount?: number;
-  destinationUrl: string;
-  updatedAt?: string;
+  name: string;
+  age: number;
+  rating: number;
+  viewers: number;
+  tags: string[];
+  thumbnailUrl: string;
+  streamUrl?: string;
+  isOnline: boolean;
+  isHD: boolean;
+  country: string;
 }
-export type CategoryFilter = 'all' | 'live' | 'mature' | 'milf' | 'popular' | 'new';
