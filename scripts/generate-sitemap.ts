@@ -32,6 +32,38 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
+async function assertCrakBuildEnv(): Promise<void> {
+  const { isCrakConfigured } = await import("../src/lib/crak/config");
+  if (isCrakConfigured()) return;
+
+  const { getCrakEnvPresence } = await import("../src/lib/crak/diagnostics");
+  const presence = getCrakEnvPresence();
+  const envSummary = Object.fromEntries(
+    Object.entries(presence).map(([key, meta]) => [
+      key,
+      { present: meta.present, source: meta.source },
+    ]),
+  );
+
+  console.error(
+    JSON.stringify(
+      {
+        error:
+          "CRAK credentials missing during build-time sitemap generation",
+        required:
+          "CRAK_API_KEY + CRAK_TOKEN (or CRAKREVENUE_API_KEY + CRAKREVENUE_API_TOKEN / CRACKREVENUE_TOKEN)",
+        cloudflare:
+          "Add the same names under Workers & Pages → maturecamrooms → Settings → Environment variables (Production). Functions-only secrets are not available during npm run pages:build.",
+        documentation: "docs/cloudflare-pages-crak-build.md",
+        env: envSummary,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(1);
+}
+
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -50,6 +82,8 @@ function urlEntry(url: string, lastModified?: Date): string {
 }
 
 async function main() {
+  await assertCrakBuildEnv();
+
   const {
     runSitemapPipeline,
     staticSitemapEntries,

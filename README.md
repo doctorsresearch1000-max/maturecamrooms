@@ -64,7 +64,7 @@ Use this when you want Cloudflare to build on every push to `main` (no GitHub Ac
    - Build output directory: `.vercel/output/static`
    - Node.js version: **20**
 4. **Environment variables** (Production + Preview): copy from `.env.example` and add affiliate IDs.
-   - `CRAK_API_KEY` / `CRAK_TOKEN` must be set for **both build and runtime** so `npm run pages:build` can generate `public/sitemap.xml` via the validated CRAK pipeline (no per-request CRAK fan-out on `/sitemap.xml`).
+   - **`CRAK_API_KEY` and `CRAK_TOKEN`** (or legacy aliases in `.env.example`) must be set under **Pages → Environment variables** for **Production** so the **build** can run `npm run generate:sitemap`. Runtime-only Functions secret bindings are not enough — see [`docs/cloudflare-pages-crak-build.md`](docs/cloudflare-pages-crak-build.md).
 5. Save and deploy. Each green build gets a `*.pages.dev` URL.
 
 **Custom domains**

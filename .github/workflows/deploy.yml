@@ -27,6 +27,15 @@ jobs:
         run: npm ci
 
       - name: Build Next.js application for Cloudflare Pages
+        env:
+          CRAK_API_KEY: ${{ secrets.CRAK_API_KEY }}
+          CRAK_TOKEN: ${{ secrets.CRAK_TOKEN }}
+          CRAK_CAM_API_BASE: ${{ secrets.CRAK_CAM_API_BASE }}
+          CRAK_BRANDS: ${{ secrets.CRAK_BRANDS }}
+          CRAK_LANDING_ID: ${{ secrets.CRAK_LANDING_ID }}
+          CRAKREVENUE_API_KEY: ${{ secrets.CRAKREVENUE_API_KEY }}
+          CRAKREVENUE_API_TOKEN: ${{ secrets.CRAKREVENUE_API_TOKEN }}
+          CRACKREVENUE_TOKEN: ${{ secrets.CRACKREVENUE_TOKEN }}
         run: npm run pages:build
 
       - name: Deploy to Cloudflare Pages
