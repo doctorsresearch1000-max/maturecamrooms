@@ -50,6 +50,6 @@ export function generateTaxonomyMetaDescription(
       : `Browse live ${label.toLowerCase()} cam models`;
 
   return clip(
-    `${countPhrase} on ${siteConfig.name}. Discover profiles, tags and related models. 18+ sponsored links.`,
+    `${countPhrase} on ${siteConfig.name}. Discover profiles, tags and related live webcam models. 18+ only.`,
   );
 }

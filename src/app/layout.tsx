@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description:
-    "Watch live mature, MILF, cougar, and mom cam models in HD. Fast mobile grid, sponsored 18+ room links, and SEO-friendly performer discovery.",
+    "Watch live mature, MILF, cougar and mom webcam models in HD. Fast mobile browsing and SEO-friendly model profiles — 18+ only.",
   keywords: siteConfig.defaultTags,
   applicationName: siteConfig.name,
   alternates: {
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: `${siteConfig.name} — Live Mature & MILF Cams`,
     description:
-      "Discover live mature and MILF cam performers. Mobile-first, lazy-loaded thumbnails, sponsored affiliate rooms.",
+      "Discover live mature and MILF webcam performers. Mobile-first HD thumbnails and live room previews.",
   },
   twitter: {
     card: "summary_large_image",
     title: `${siteConfig.name} — Live Mature & MILF Cams`,
     description:
-      "Live mature, MILF, and cougar cams — fast grid and 18+ sponsored links.",
+      "Live mature, MILF and cougar cams — browse models and watch free live rooms. 18+ only.",
   },
   robots: {
     index: true,

@@ -2,15 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ModelDirectoryNav } from "@/components/layout/ModelDirectoryNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { siteConfig } from "@/lib/site";
-
-const DESKTOP_NAV = [
-  { href: "/", label: "Live" },
-  { href: "/category/mature", label: "Mature" },
-  { href: "/category/milf", label: "MILF" },
-  { href: "/category/cougar", label: "Cougar" },
-];
 
 export function SiteHeader() {
   const { setDrawerOpen, setSearchOpen, favorites } = useShell();
@@ -35,56 +29,41 @@ export function SiteHeader() {
 
         <Link
           href="/"
-          className="flex min-w-0 flex-1 items-center justify-center lg:flex-none lg:justify-start"
+          className="flex shrink-0 items-center lg:mr-2"
         >
           <Image
             src="/maturecamrooms-logo.png"
             alt={siteConfig.name}
             width={747}
             height={59}
-            className="h-[1.65rem] w-auto max-w-[min(72vw,15.5rem)] sm:h-9 lg:h-10"
+            className="h-[1.65rem] w-auto max-w-[min(42vw,11rem)] sm:h-9 lg:h-10 lg:max-w-[15.5rem]"
             priority
           />
-          <span className="ml-2 hidden text-[10px] uppercase tracking-widest text-text-muted lg:inline">
-            Mature · MILF · Cougar
-          </span>
         </Link>
 
-        <nav
-          className="ml-2 hidden flex-1 items-center gap-1 lg:flex"
-          aria-label="Primary"
-        >
-          {DESKTOP_NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="hidden min-w-0 lg:flex lg:flex-1">
+          <ModelDirectoryNav variant="header" />
+        </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-md text-lg text-text-secondary hover:bg-surface-hover hover:text-foreground lg:min-w-[44px] lg:px-3 lg:text-sm lg:font-medium"
+            className="flex min-h-[40px] min-w-[120px] max-w-[200px] flex-1 items-center gap-2 rounded-full border border-border bg-surface-elevated px-3 text-left text-base text-text-muted transition hover:border-accent/30 sm:min-w-[160px] lg:max-w-xs"
             aria-label="Search models"
           >
-            <span className="lg:hidden" aria-hidden>⌕</span>
-            <span className="hidden lg:inline">Search</span>
-            <span className="hidden lg:ml-1 lg:inline" aria-hidden>⌕</span>
+            <span className="text-text-secondary" aria-hidden>⌕</span>
+            <span className="truncate text-base">Search models…</span>
           </button>
           <button
             type="button"
-            className="relative hidden h-11 min-w-[44px] items-center justify-center rounded-md px-3 text-sm font-medium text-text-secondary hover:bg-surface-hover sm:flex"
+            className="relative hidden h-10 min-w-[40px] items-center justify-center rounded-md px-2 text-sm font-medium text-text-secondary hover:bg-surface-hover sm:flex"
             aria-label={`Favorites, ${favorites.size} saved`}
             onClick={() => setDrawerOpen(true)}
           >
             ♥
             {favorites.size > 0 ? (
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+              <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
                 {favorites.size}
               </span>
             ) : null}

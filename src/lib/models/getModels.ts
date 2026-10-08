@@ -7,6 +7,7 @@ import type { CamModel, ModelsResult } from "@/lib/models/types";
 
 export type ModelQuery = {
   limit?: number;
+  page?: number;
   live?: boolean;
   tag?: string;
   name?: string;
@@ -19,7 +20,7 @@ async function queryFeed(options: ModelQuery = {}): Promise<ModelsResult> {
       models: [],
       source: "unconfigured",
       message:
-        "Set CRAK_API_KEY and CRAK_TOKEN (or CRAKREVENUE_API_KEY / CRAKREVENUE_API_TOKEN) on the server to load live performers.",
+        "Live model listings are temporarily unavailable. Please check back shortly.",
     };
   }
 
@@ -31,15 +32,23 @@ async function queryFeed(options: ModelQuery = {}): Promise<ModelsResult> {
         : `${matureTagsQuery()},${tagFilter}`
       : matureTagsQuery();
 
+    const size = options.limit ?? 24;
     const models = await getCrakFeed({
-      size: options.limit ?? 24,
+      page: options.page ?? 1,
+      size,
       live: options.live,
       tags,
       name: options.name,
       sorting: options.sorting ?? "score",
     });
 
-    return { models, source: "crak" };
+    const page = options.page ?? 1;
+    return {
+      models,
+      source: "crak",
+      page,
+      hasMore: models.length >= size,
+    };
   } catch (err) {
     const base =
       err instanceof Error
@@ -62,6 +71,19 @@ export async function getFeaturedModels(
   options?: Omit<ModelQuery, "limit">,
 ): Promise<ModelsResult> {
   return queryFeed({ ...options, limit, live: options?.live ?? true });
+}
+
+export async function getModelsPage(
+  page: number,
+  limit = 24,
+  options?: Omit<ModelQuery, "limit" | "page">,
+): Promise<ModelsResult> {
+  return queryFeed({
+    ...options,
+    page: Math.max(1, page),
+    limit,
+    live: options?.live ?? true,
+  });
 }
 
 export async function getAllModels(): Promise<ModelsResult> {

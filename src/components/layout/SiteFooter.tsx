@@ -8,8 +8,8 @@ export function SiteFooter() {
     <footer className="mt-8 hidden border-t border-border bg-surface lg:block">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-text-secondary sm:px-6">
         <p>
-          {siteConfig.name} aggregates sponsored links to third-party live cam
-          platforms. All models are 18+.
+          {siteConfig.name} helps you discover mature and MILF live webcam
+          models. All performers are 18+.
         </p>
         <ul className="flex flex-wrap gap-x-4 gap-y-2">
           <li>

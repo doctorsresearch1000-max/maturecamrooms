@@ -14,7 +14,6 @@ import {
   isCountryIndexableForModel,
   type TaxonomyIndexabilityContext,
 } from "@/lib/seo/taxonomyInventory";
-import { fetchSitemapCatalogCandidates } from "@/lib/crak/sitemapCatalog";
 import type { CamModel } from "@/lib/models/types";
 import type { BreadcrumbItem } from "@/lib/seo/breadcrumbGenerator";
 import type { InternalLink } from "@/lib/seo/internalLinks";
@@ -99,15 +98,16 @@ export function buildModelSeo(
   };
 }
 
-/** Loads inventory once for accurate taxonomy indexability on profile pages. */
+/** Profile SEO without full sitemap catalog fetch (keeps navigation fast on Edge). */
 export async function buildModelSeoForPage(
   model: CamModel,
   relatedModels: CamModel[] = [],
 ): Promise<ModelSEO> {
-  const inventory = await fetchSitemapCatalogCandidates();
-  const taxonomyIndexability = buildTaxonomyIndexabilityContext(
-    inventory.models,
-  );
+  const pool =
+    relatedModels.length > 0
+      ? [model, ...relatedModels.filter((m) => m.id !== model.id)]
+      : [model];
+  const taxonomyIndexability = buildTaxonomyIndexabilityContext(pool);
   return buildModelSeo(model, relatedModels, { taxonomyIndexability });
 }
 

@@ -11,7 +11,7 @@ export const runtime = "edge";
 export const metadata: Metadata = {
   title: "Live Mature & MILF Cams",
   description:
-    "Browse live mature, MILF, cougar, and mom cam models. Sponsored 18+ affiliate links.",
+    "Browse live mature, MILF, cougar and mom webcam models. Free to explore HD live cams — 18+ only.",
   openGraph: {
     title: `Live Mature & MILF Cams | ${siteConfig.name}`,
     description:

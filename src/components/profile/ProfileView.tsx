@@ -15,6 +15,7 @@ import {
   isCategoryIndexableForModel,
   primaryCategoryLabel,
 } from "@/lib/seo/taxonomyInventory";
+import { ModelSeoFooter } from "@/components/profile/ModelSeoFooter";
 import { CATEGORY_DISPLAY } from "@/lib/seo/config";
 
 type ProfileViewProps = {
@@ -72,9 +73,11 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
                 </span>
               </p>
             </div>
-            <span className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold uppercase text-text-secondary">
-              {model.platform}
-            </span>
+            {model.isLive ? (
+              <span className="rounded-md border border-live/30 bg-live/10 px-3 py-1.5 text-xs font-semibold uppercase text-live">
+                Live now
+              </span>
+            ) : null}
           </div>
 
           {model.stars !== undefined && model.stars > 0 ? (
@@ -93,7 +96,7 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
             {model.isLive ? "Enter live room" : "View room when live"}
           </a>
           <p className="mt-2 text-[11px] text-text-muted">
-            Sponsored link · 18+ only · nofollow sponsored
+            Opens in a new window · Adults 18+ only
           </p>
         </div>
 
@@ -200,10 +203,6 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
                 <dd className="font-medium">{model.languages.join(", ")}</dd>
               </div>
             ) : null}
-            <div>
-              <dt className="text-text-muted">Platform</dt>
-              <dd className="font-medium capitalize">{model.platform}</dd>
-            </div>
           </dl>
         </section>
 
@@ -310,6 +309,8 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
           </section>
         ) : null}
       </div>
+
+      <ModelSeoFooter model={model} related={related} seo={seo} />
     </div>
   );
 }

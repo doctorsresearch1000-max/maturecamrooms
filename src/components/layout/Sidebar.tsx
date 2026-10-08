@@ -2,41 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ModelDirectoryNav } from "@/components/layout/ModelDirectoryNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { Drawer } from "@/components/ui/Drawer";
 import { siteConfig } from "@/lib/site";
 
-const PRIMARY = [
-  { href: "/", label: "Home" },
-  { href: "/?filter=live", label: "Live now" },
-  { href: "/?filter=all", label: "All models" },
-  { href: "/category/mature", label: "Mature" },
-  { href: "/category/milf", label: "MILF" },
-  { href: "/category/cougar", label: "Cougar" },
-];
-
 const PERSONAL = [
   { href: "/#favorites", label: "Favorites" },
   { href: "/?filter=new", label: "History" },
-];
-
-const FILTER_GROUPS = [
-  {
-    title: "Age",
-    items: ["40+", "45+", "50+", "55+", "60+"],
-  },
-  {
-    title: "Body",
-    items: ["Petite", "Average", "Curvy", "BBW"],
-  },
-  {
-    title: "Hair",
-    items: ["Blonde", "Brunette", "Redhead", "Black", "Grey"],
-  },
-  {
-    title: "Popular",
-    items: ["Most viewed", "Trending", "New", "Recently online"],
-  },
 ];
 
 function SidebarNav({
@@ -74,47 +47,33 @@ function SidebarNav({
         </ul>
       </div>
 
-      <div>
-        <p className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted lg:mb-2 lg:px-0">
-          Browse
+      <ModelDirectoryNav variant="drawer" onNavigate={onNavigate} />
+
+      <div className="hidden lg:block">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+          Quick links
         </p>
         <ul className="space-y-0.5">
-          {PRIMARY.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                className="flex min-h-[44px] items-center rounded-lg px-3 font-medium text-foreground transition hover:bg-surface-hover lg:rounded-md"
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          <li>
+            <Link
+              href="/"
+              onClick={onNavigate}
+              className="flex min-h-[44px] items-center rounded-md px-3 font-medium text-foreground hover:bg-surface-hover"
+            >
+              Live now
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/?filter=all"
+              onClick={onNavigate}
+              className="flex min-h-[44px] items-center rounded-md px-3 font-medium text-foreground hover:bg-surface-hover"
+            >
+              All models
+            </Link>
+          </li>
         </ul>
       </div>
-      {FILTER_GROUPS.map((group) => (
-        <div key={group.title}>
-          <p className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted lg:mb-2 lg:px-0">
-            {group.title}
-          </p>
-          <ul className="space-y-0.5">
-            {group.items.map((item) => (
-              <li key={item}>
-                <button
-                  type="button"
-                  className="flex w-full min-h-[40px] items-center rounded-lg px-3 text-left text-text-secondary transition hover:bg-surface-hover hover:text-foreground lg:rounded-md"
-                  onClick={onNavigate}
-                >
-                  {item}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-      <p className="px-2 text-[11px] text-text-muted lg:px-0">
-        Extended filters connect when the live API is wired.
-      </p>
     </nav>
   );
 }

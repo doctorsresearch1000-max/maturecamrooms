@@ -18,7 +18,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
     .join(" · ");
 
   const cardClass =
-    "relative block aspect-[3/4] overflow-hidden rounded-[10px] border border-white/[0.06] bg-surface-elevated sm:rounded-card";
+    "relative block aspect-[3/4] touch-manipulation overflow-hidden rounded-[10px] border border-white/[0.06] bg-surface-elevated sm:rounded-card";
 
   const inner = (
     <>
@@ -51,7 +51,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
         </span>
       )}
 
-      <div className="absolute right-1 top-1 z-10 sm:right-1.5 sm:top-1.5">
+      <div className="absolute right-1 top-1 z-20 sm:right-1.5 sm:top-1.5">
         <FavoriteButton modelId={model.id} />
       </div>
 
@@ -82,7 +82,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
       </div>
 
       <span
-        className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/40 opacity-0 transition duration-base group-hover:opacity-100 md:flex"
+        className="pointer-events-none absolute inset-0 z-0 hidden items-center justify-center bg-black/40 opacity-0 transition duration-base group-hover:opacity-100 md:flex"
       >
         <span className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-lg">
           {model.isLive ? "Watch live" : "View profile"}

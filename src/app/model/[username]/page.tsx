@@ -2,14 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { StructuredDataScripts } from "@/components/seo/StructuredDataScripts";
-import {
-  getModelByUsername,
-  getRelatedModels,
-} from "@/lib/models/getModels";
-import {
-  buildModelSeoForPage,
-  modelSeoToMetadata,
-} from "@/lib/seo/modelSeo";
+import { loadModelProfile } from "@/lib/models/loadModelProfile";
+import { modelSeoToMetadata } from "@/lib/seo/modelSeo";
 
 export const runtime = "edge";
 
@@ -21,22 +15,20 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  const model = await getModelByUsername(username);
-  if (!model) {
+  const bundle = await loadModelProfile(username);
+  if (!bundle) {
     return { title: "Model not found", robots: { index: false, follow: false } };
   }
-  const seo = await buildModelSeoForPage(model);
-  return modelSeoToMetadata(seo);
+  return modelSeoToMetadata(bundle.seo);
 }
 
 export default async function ModelProfilePage({ params }: PageProps) {
   const { username } = await params;
-  const model = await getModelByUsername(username);
-  if (!model) {
+  const bundle = await loadModelProfile(username);
+  if (!bundle) {
     notFound();
   }
-  const related = await getRelatedModels(model, 8);
-  const seo = await buildModelSeoForPage(model, related);
+  const { model, related, seo } = bundle;
 
   const structuredBlocks = [
     seo.structuredData.breadcrumb,
