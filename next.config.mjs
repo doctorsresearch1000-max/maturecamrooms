@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Cloudflare Pages (next-on-pages) serves remote CDN thumbs directly.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
