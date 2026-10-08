@@ -1,5 +1,5 @@
+import { canonicalProfileSlug } from "@/lib/crak/sitemapCatalog";
 import { isCrakConfigured } from "@/lib/crak/config";
-import { slugify } from "@/lib/seo/slug";
 import { getCrakFeed, getCrakPerformerBySlug, searchCrakPerformers } from "@/lib/crak/service";
 import { rankRelatedModels } from "@/lib/crak/related";
 import { matureTagsQuery } from "@/lib/crak/taxonomy";
@@ -66,11 +66,6 @@ export async function getFeaturedModels(
 
 export async function getAllModels(): Promise<ModelsResult> {
   return queryFeed({ limit: 48, live: undefined });
-}
-
-function canonicalProfileSlug(username: string): string {
-  const slug = slugify(username);
-  return slug || username.trim().toLowerCase();
 }
 
 export async function getModelByUsername(

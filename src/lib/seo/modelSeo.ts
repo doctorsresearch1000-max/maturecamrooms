@@ -14,8 +14,7 @@ import {
   isCountryIndexableForModel,
   type TaxonomyIndexabilityContext,
 } from "@/lib/seo/taxonomyInventory";
-import { getFeaturedModels } from "@/lib/models/getModels";
-import { SITEMAP_MODEL_FETCH_SIZE } from "@/lib/seo/config";
+import { fetchSitemapCatalogCandidates } from "@/lib/crak/sitemapCatalog";
 import type { CamModel } from "@/lib/models/types";
 import type { BreadcrumbItem } from "@/lib/seo/breadcrumbGenerator";
 import type { InternalLink } from "@/lib/seo/internalLinks";
@@ -105,9 +104,7 @@ export async function buildModelSeoForPage(
   model: CamModel,
   relatedModels: CamModel[] = [],
 ): Promise<ModelSEO> {
-  const inventory = await getFeaturedModels(SITEMAP_MODEL_FETCH_SIZE, {
-    live: undefined,
-  });
+  const inventory = await fetchSitemapCatalogCandidates();
   const taxonomyIndexability = buildTaxonomyIndexabilityContext(
     inventory.models,
   );

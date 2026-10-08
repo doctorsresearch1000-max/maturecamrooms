@@ -1,5 +1,3 @@
-import { getOptionalRequestContext } from "@cloudflare/next-on-pages";
-
 const CRAK_ENV_KEYS = [
   "CRAK_API_KEY",
   "CRAK_TOKEN",
@@ -35,7 +33,12 @@ function readFromProcess(key: string): string {
  */
 function getCloudflareEnv(): CloudflareEnvLike | undefined {
   try {
-    const ctx = getOptionalRequestContext();
+    // Lazy require: @cloudflare/next-on-pages is edge-only and breaks Node tooling.
+    const req = eval("require") as NodeRequire;
+    const mod = req("@cloudflare/next-on-pages") as {
+      getOptionalRequestContext?: () => { env?: CloudflareEnvLike };
+    };
+    const ctx = mod.getOptionalRequestContext?.();
     const env = ctx?.env;
     return env && typeof env === "object"
       ? (env as CloudflareEnvLike)

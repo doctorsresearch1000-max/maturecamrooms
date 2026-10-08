@@ -1,20 +1,20 @@
 import type { MetadataRoute } from "next";
 import {
-  fetchIndexableModelsForSitemap,
-  fetchTaxonomySitemapEntries,
   modelsToSitemapEntries,
+  runSitemapPipeline,
   staticSitemapEntries,
+  taxonomyToSitemapEntries,
 } from "@/lib/seo/sitemap";
 
 export const runtime = "edge";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = staticSitemapEntries();
+  const pipeline = await runSitemapPipeline();
 
-  const [models, taxonomies] = await Promise.all([
-    fetchIndexableModelsForSitemap(),
-    fetchTaxonomySitemapEntries(),
-  ]);
-
-  return [...entries, ...taxonomies, ...modelsToSitemapEntries(models)];
+  return [
+    ...entries,
+    ...taxonomyToSitemapEntries(pipeline.taxonomyContext),
+    ...modelsToSitemapEntries(pipeline.indexableModels),
+  ];
 }

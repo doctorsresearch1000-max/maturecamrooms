@@ -10,8 +10,14 @@ export const SEO_DESCRIPTION_MAX_LENGTH = 155;
 /** Related models shown on profile (SEO + discovery). */
 export const RELATED_MODEL_LIMIT = 8;
 
-/** Max models fetched per sitemap generation pass (edge-safe). */
-export const SITEMAP_MODEL_FETCH_SIZE = 120;
+/** CRAK list API max performers per request (enforced in fetchNormalized). */
+export const CRAK_REQUEST_PAGE_SIZE = 48;
+
+/** Max paginated CRAK list requests per sitemap/taxonomy inventory pass. */
+export const SITEMAP_MAX_PAGES = 16;
+
+/** Max unique performer candidates collected from CRAK per sitemap pass (~605 mature+age offline). */
+export const SITEMAP_MAX_CANDIDATES = 650;
 
 /** Site categories owned by MatureCamRooms (not raw Crak tags). */
 export const SITE_CATEGORIES = ["mature", "milf", "cougar", "mom"] as const;

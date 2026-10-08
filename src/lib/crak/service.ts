@@ -6,6 +6,7 @@ import {
   matureAgeGroupsQuery,
   matureTagsQuery,
 } from "@/lib/crak/taxonomy";
+import { CRAK_REQUEST_PAGE_SIZE } from "@/lib/seo/config";
 import type { CrakFetchParams } from "@/lib/crak/types";
 import type { CamModel } from "@/lib/models/types";
 
@@ -29,7 +30,7 @@ function cacheKey(prefix: string, query: FeedQuery): string {
 async function fetchNormalized(query: FeedQuery): Promise<CamModel[]> {
   const res = await fetchPerformers({
     page: query.page ?? 1,
-    size: Math.min(query.size ?? 24, 48),
+    size: Math.min(query.size ?? 24, CRAK_REQUEST_PAGE_SIZE),
     sorting: query.sorting ?? "score",
     live: query.live,
     tags: query.tags,
@@ -96,6 +97,7 @@ export async function getCrakFeed(query: FeedQuery = {}): Promise<CamModel[]> {
   );
 }
 
+/** Profile resolution uses exact nameClean match only (itemId lookup is not reliable in CRAK). */
 async function loadPerformerBySlug(
   slug: string,
 ): Promise<CamModel | undefined> {

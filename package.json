@@ -8,7 +8,8 @@
     "pages:build": "npx @cloudflare/next-on-pages",
     "preview:cf": "npm run pages:build && npx wrangler pages dev .vercel/output/static",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sitemap:audit": "npx tsx scripts/sitemap-audit.ts"
   },
   "engines": {
     "node": ">=18"

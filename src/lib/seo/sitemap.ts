@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/site";
-import { SITE_CATEGORIES, SITEMAP_MODEL_FETCH_SIZE } from "@/lib/seo/config";
+import { SITE_CATEGORIES } from "@/lib/seo/config";
 import {
   canonicalCategoryUrl,
   canonicalCountryUrl,
@@ -8,15 +8,17 @@ import {
   canonicalModelUrl,
   canonicalTagUrl,
 } from "@/lib/seo/canonical";
-import { isModelIndexable } from "@/lib/seo/indexability";
-import { getFeaturedModels, getModelByUsername } from "@/lib/models/getModels";
+import { isCrakConfigured } from "@/lib/crak/config";
+import {
+  fetchSitemapCatalogCandidates,
+  type SitemapCatalogResult,
+} from "@/lib/crak/sitemapCatalog";
+import {
+  resolveSitemapModels,
+  type SitemapResolveResult,
+} from "@/lib/crak/sitemapResolve";
 import { buildTaxonomyIndexabilityContext } from "@/lib/seo/taxonomyInventory";
-import { slugify } from "@/lib/seo/slug";
-import type { CamModel, ModelsResult } from "@/lib/models/types";
-
-function profileSlug(username: string): string {
-  return slugify(username) || username.trim().toLowerCase();
-}
+import type { CamModel } from "@/lib/models/types";
 
 export class SitemapGenerationError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
@@ -25,41 +27,36 @@ export class SitemapGenerationError extends Error {
   }
 }
 
-function assertCrakFeedForSitemap(result: ModelsResult): CamModel[] {
-  if (result.source === "unconfigured") {
+export type SitemapPipelineResult = {
+  catalog: SitemapCatalogResult;
+  resolve: SitemapResolveResult;
+  indexableModels: CamModel[];
+  taxonomyContext: ReturnType<typeof buildTaxonomyIndexabilityContext>;
+};
+
+export async function runSitemapPipeline(): Promise<SitemapPipelineResult> {
+  if (!isCrakConfigured()) {
     throw new SitemapGenerationError(
       "Sitemap generation failed: Crak API credentials are not configured",
     );
   }
-  if (result.source === "error") {
+
+  const catalog = await fetchSitemapCatalogCandidates();
+  if (catalog.models.length === 0) {
     throw new SitemapGenerationError(
-      result.message ?? "Sitemap generation failed: Crak feed error",
+      "Sitemap generation failed: Crak returned no performer candidates",
     );
   }
-  return result.models;
-}
 
-/** Same resolution path as `src/app/model/[username]/page.tsx`. */
-async function resolveIndexableModelsForSitemap(
-  candidates: CamModel[],
-): Promise<CamModel[]> {
-  const resolved = await Promise.all(
-    candidates.map(async (model) => {
-      const slug = profileSlug(model.username);
-      const profile = await getModelByUsername(slug, {
-        bypassCache: true,
-      });
-      if (!profile || !isModelIndexable(profile)) return null;
-      if (profileSlug(profile.username) !== slug) return null;
-      return profile;
-    }),
-  );
+  const resolve = await resolveSitemapModels(catalog.models);
+  const taxonomyContext = buildTaxonomyIndexabilityContext(catalog.models);
 
-  const byUsername = new Map<string, CamModel>();
-  for (const model of resolved) {
-    if (model) byUsername.set(model.username.toLowerCase(), model);
-  }
-  return [...byUsername.values()];
+  return {
+    catalog,
+    resolve,
+    indexableModels: resolve.models,
+    taxonomyContext,
+  };
 }
 
 export function staticSitemapEntries(): MetadataRoute.Sitemap {
@@ -87,12 +84,8 @@ export function staticSitemapEntries(): MetadataRoute.Sitemap {
 }
 
 export async function fetchIndexableModelsForSitemap(): Promise<CamModel[]> {
-  const result = await getFeaturedModels(SITEMAP_MODEL_FETCH_SIZE, {
-    live: undefined,
-  });
-  const models = assertCrakFeedForSitemap(result);
-  const candidates = models.filter(isModelIndexable);
-  return resolveIndexableModelsForSitemap(candidates);
+  const pipeline = await runSitemapPipeline();
+  return pipeline.indexableModels;
 }
 
 export function modelsToSitemapEntries(
@@ -155,10 +148,6 @@ export function taxonomyToSitemapEntries(
 }
 
 export async function fetchTaxonomySitemapEntries(): Promise<MetadataRoute.Sitemap> {
-  const result = await getFeaturedModels(SITEMAP_MODEL_FETCH_SIZE, {
-    live: undefined,
-  });
-  const models = assertCrakFeedForSitemap(result);
-  const ctx = buildTaxonomyIndexabilityContext(models);
-  return taxonomyToSitemapEntries(ctx);
+  const pipeline = await runSitemapPipeline();
+  return taxonomyToSitemapEntries(pipeline.taxonomyContext);
 }
