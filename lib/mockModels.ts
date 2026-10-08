@@ -1,4 +1,4 @@
-import { Model } from '@/types/model';
+import { Model } from '../types/model';
 
 export const MOCK_MODELS: Model[] = [
   {

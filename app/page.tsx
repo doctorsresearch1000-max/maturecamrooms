@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from "react";
-import { MOCK_MODELS } from "@/lib/mockModels";
-import ModelCard from "@/components/ModelCard";
-import FilterBar from "@/components/FilterBar";
+import { MOCK_MODELS } from "./lib/mockModels";
+import ModelCard from "./components/ModelCard";
+import FilterBar from "./components/FilterBar";
 
 export default function Home() {
   const [selectedTag, setSelectedTag] = useState("All");

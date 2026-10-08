@@ -1,5 +1,5 @@
 import React from 'react';
-import { Model } from '@/types/model';
+import { Model } from '../types/model';
 
 interface ModelCardProps {
   model: Model;
