@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/lib/site";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
+  alternates: { canonical: absoluteUrl("/terms") },
   robots: { index: true, follow: true },
 };
 

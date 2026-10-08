@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/lib/site";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
+  alternates: { canonical: absoluteUrl("/privacy") },
   robots: { index: true, follow: true },
 };
 

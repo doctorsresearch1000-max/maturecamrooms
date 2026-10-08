@@ -9,9 +9,58 @@ import {
   canonicalTagUrl,
 } from "@/lib/seo/canonical";
 import { isModelIndexable } from "@/lib/seo/indexability";
-import { getFeaturedModels } from "@/lib/models/getModels";
+import { getFeaturedModels, getModelByUsername } from "@/lib/models/getModels";
 import { buildTaxonomyIndexabilityContext } from "@/lib/seo/taxonomyInventory";
-import type { CamModel } from "@/lib/models/types";
+import { slugify } from "@/lib/seo/slug";
+import type { CamModel, ModelsResult } from "@/lib/models/types";
+
+function profileSlug(username: string): string {
+  return slugify(username) || username.trim().toLowerCase();
+}
+
+export class SitemapGenerationError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = "SitemapGenerationError";
+  }
+}
+
+function assertCrakFeedForSitemap(result: ModelsResult): CamModel[] {
+  if (result.source === "unconfigured") {
+    throw new SitemapGenerationError(
+      "Sitemap generation failed: Crak API credentials are not configured",
+    );
+  }
+  if (result.source === "error") {
+    throw new SitemapGenerationError(
+      result.message ?? "Sitemap generation failed: Crak feed error",
+    );
+  }
+  return result.models;
+}
+
+/** Same resolution path as `src/app/model/[username]/page.tsx`. */
+async function resolveIndexableModelsForSitemap(
+  candidates: CamModel[],
+): Promise<CamModel[]> {
+  const resolved = await Promise.all(
+    candidates.map(async (model) => {
+      const slug = profileSlug(model.username);
+      const profile = await getModelByUsername(slug, {
+        bypassCache: true,
+      });
+      if (!profile || !isModelIndexable(profile)) return null;
+      if (profileSlug(profile.username) !== slug) return null;
+      return profile;
+    }),
+  );
+
+  const byUsername = new Map<string, CamModel>();
+  for (const model of resolved) {
+    if (model) byUsername.set(model.username.toLowerCase(), model);
+  }
+  return [...byUsername.values()];
+}
 
 export function staticSitemapEntries(): MetadataRoute.Sitemap {
   const legal: MetadataRoute.Sitemap = [
@@ -41,7 +90,9 @@ export async function fetchIndexableModelsForSitemap(): Promise<CamModel[]> {
   const result = await getFeaturedModels(SITEMAP_MODEL_FETCH_SIZE, {
     live: undefined,
   });
-  return result.models.filter(isModelIndexable);
+  const models = assertCrakFeedForSitemap(result);
+  const candidates = models.filter(isModelIndexable);
+  return resolveIndexableModelsForSitemap(candidates);
 }
 
 export function modelsToSitemapEntries(
@@ -107,6 +158,7 @@ export async function fetchTaxonomySitemapEntries(): Promise<MetadataRoute.Sitem
   const result = await getFeaturedModels(SITEMAP_MODEL_FETCH_SIZE, {
     live: undefined,
   });
-  const ctx = buildTaxonomyIndexabilityContext(result.models);
+  const models = assertCrakFeedForSitemap(result);
+  const ctx = buildTaxonomyIndexabilityContext(models);
   return taxonomyToSitemapEntries(ctx);
 }

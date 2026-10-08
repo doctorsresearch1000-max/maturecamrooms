@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "DMCA",
+  alternates: { canonical: absoluteUrl("/dmca") },
   robots: { index: true, follow: true },
 };
 

@@ -116,7 +116,7 @@ export async function buildModelSeoForPage(
 
 export function modelSeoToMetadata(seo: ModelSEO) {
   return {
-    title: seo.title,
+    title: { absolute: seo.title },
     description: seo.metaDescription,
     alternates: { canonical: seo.canonicalUrl },
     robots: seo.indexable

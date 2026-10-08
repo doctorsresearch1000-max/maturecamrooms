@@ -96,22 +96,30 @@ export async function getCrakFeed(query: FeedQuery = {}): Promise<CamModel[]> {
   );
 }
 
+async function loadPerformerBySlug(
+  slug: string,
+): Promise<CamModel | undefined> {
+  const res = await fetchPerformerByName(slug);
+  const match = res.performers.find(
+    (p) => p.nameClean.toLowerCase() === slug.toLowerCase(),
+  );
+  if (!match) return undefined;
+  const model = normalizePerformer(match);
+  return model.thumbnailUrl || model.roomUrl ? model : undefined;
+}
+
 export async function getCrakPerformerBySlug(
   slug: string,
+  options?: { bypassCache?: boolean },
 ): Promise<CamModel | undefined> {
   if (!isCrakConfigured()) return undefined;
 
+  if (options?.bypassCache) {
+    return loadPerformerBySlug(slug);
+  }
+
   const key = `performer:${slug.toLowerCase()}`;
-  return withCache(key, LIVE_LIST_TTL, async () => {
-    const res = await fetchPerformerByName(slug);
-    const match =
-      res.performers.find(
-        (p) => p.nameClean.toLowerCase() === slug.toLowerCase(),
-      ) ?? res.performers[0];
-    if (!match) return undefined;
-    const model = normalizePerformer(match);
-    return model.thumbnailUrl || model.roomUrl ? model : undefined;
-  });
+  return withCache(key, LIVE_LIST_TTL, () => loadPerformerBySlug(slug));
 }
 
 export async function searchCrakPerformers(

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "18 U.S.C. § 2257",
+  alternates: { canonical: absoluteUrl("/2257") },
   robots: { index: true, follow: true },
 };
 

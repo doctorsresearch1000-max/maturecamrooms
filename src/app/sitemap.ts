@@ -11,17 +11,10 @@ export const runtime = "edge";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = staticSitemapEntries();
 
-  try {
-    const [models, taxonomies] = await Promise.all([
-      fetchIndexableModelsForSitemap(),
-      fetchTaxonomySitemapEntries(),
-    ]);
-    return [
-      ...entries,
-      ...taxonomies,
-      ...modelsToSitemapEntries(models),
-    ];
-  } catch {
-    return entries;
-  }
+  const [models, taxonomies] = await Promise.all([
+    fetchIndexableModelsForSitemap(),
+    fetchTaxonomySitemapEntries(),
+  ]);
+
+  return [...entries, ...taxonomies, ...modelsToSitemapEntries(models)];
 }

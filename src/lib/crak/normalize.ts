@@ -1,5 +1,6 @@
 import { pickSafeStreamUrl } from "@/lib/crak/allowlist";
 import { mapPerformerTaxonomy } from "@/lib/crak/taxonomy";
+import { slugify } from "@/lib/seo/slug";
 import type { CrakPerformer } from "@/lib/crak/types";
 import type { CamModel } from "@/lib/models/types";
 import type { AffiliatePlatform } from "@/lib/affiliate/links";
@@ -19,7 +20,8 @@ function countryCodeFromCharacteristic(country?: string): string | undefined {
 
 export function normalizePerformer(performer: CrakPerformer): CamModel {
   const { categories, tags } = mapPerformerTaxonomy(performer);
-  const slug = performer.nameClean || performer.name;
+  const rawSlug = performer.nameClean || performer.name;
+  const slug = slugify(rawSlug) || rawSlug.trim().toLowerCase();
   const iframeFeedUrl = pickSafeStreamUrl(
     performer.iframeFeedURL,
     performer.streamFeedUrl,
