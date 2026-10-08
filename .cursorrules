@@ -1,0 +1,37 @@
+# MatureCamRooms — Cursor rules (SEO, performance, monetization)
+
+## Stack
+- Next.js 15 (14+ App Router), TypeScript, Tailwind CSS.
+- Prefer Server Components; use Client Components only for interactivity (filters, bookmarks).
+- Use the `@/*` import alias for all internal modules.
+
+## SEO
+- Every public route must export `metadata` or `generateMetadata` with unique `title`, `description`, and canonical URL via `alternates.canonical`.
+- Use `metadataBase` from `NEXT_PUBLIC_SITE_URL` in the root layout.
+- Add Open Graph and Twitter card fields (`openGraph`, `twitter`) on index and category pages.
+- Emit JSON-LD (`WebPage`, `ItemList`, `VideoObject` on room pages) via dedicated components under `src/components/seo/`.
+- Default niche keywords: milf, mature, cougar, mom (see `NEXT_PUBLIC_DEFAULT_TAGS`).
+- Legal/compliance pages (2257, DMCA, Privacy, Terms) must be `index: false` unless explicitly approved.
+- Use semantic HTML: one `h1` per page, descriptive `alt` on thumbnails, `aria-label` on icon-only controls.
+
+## Performance
+- Target Edge runtime (`export const runtime = "edge"`) for read-heavy listing pages when compatible.
+- Lazy-load thumbnails (`loading="lazy"`, `next/image` with sensible `sizes`).
+- Defer iframes and embeds: render placeholder first; load iframe on hover, click, or `IntersectionObserver`.
+- Avoid blocking third-party scripts in the critical path; use `next/script` with `afterInteractive` or `lazyOnload`.
+- Keep LCP image/thumbnail prioritized only for above-the-fold slots.
+
+## Monetization & affiliate links
+- All outbound affiliate, smartlink, and cam-room URLs must use `rel="nofollow sponsored"` (and `noopener noreferrer` when `target="_blank"`).
+- Centralize URL building in `src/lib/affiliate/` — never hardcode affiliate IDs in components.
+- Label sponsored tiles/CTAs clearly (e.g. “Sponsored”, “Live on …”) for UX and compliance.
+- Do not cloak or misrepresent destination sites.
+
+## Content filters (mature niche)
+- Default catalog filters: tags `milf`, `mature`, `cougar`, `mom` from `NEXT_PUBLIC_DEFAULT_TAGS`.
+- Room/model APIs and mock data should bias toward 30+ / mature performers unless a route explicitly widens the filter.
+- Exclude underage or ambiguous age copy; use “18+” and “adults only” in footers and meta where appropriate.
+
+## Code style
+- Minimize scope; match existing naming and folder layout.
+- No secrets in the repo; use `.env.local` and Cloudflare Pages environment variables for production.
