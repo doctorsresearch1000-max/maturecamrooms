@@ -1,6 +1,6 @@
 import { absoluteUrl, siteConfig } from "@/lib/site";
+import { canonicalModelUrl } from "@/lib/seo/canonical";
 import type { CamModel } from "@/lib/models/types";
-import { resolveRoomUrl } from "@/lib/models/resolveRoomUrl";
 
 type HomeJsonLdProps = {
   models: CamModel[];
@@ -28,13 +28,12 @@ export function HomeJsonLd({ models }: HomeJsonLdProps) {
     itemListElement: models.map((model, index) => ({
       "@type": "ListItem",
       position: index + 1,
+      url: canonicalModelUrl(model.username),
       item: {
-        "@type": "VideoObject",
-        name: `${model.displayName} live cam`,
-        description: `Live ${model.tags.join(", ")} cam show — 18+`,
-        thumbnailUrl: model.thumbnailUrl,
-        contentUrl: resolveRoomUrl(model),
-        isLiveBroadcast: model.isLive,
+        "@type": "Person",
+        name: model.displayName.trim(),
+        alternateName: model.username,
+        url: canonicalModelUrl(model.username),
       },
     })),
   };

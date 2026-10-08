@@ -19,6 +19,9 @@ export type CamModel = {
   country?: string;
   hair?: string;
   figure?: string;
+  ethnicity?: string;
+  bustSize?: string;
+  height?: string;
   description?: string;
   languages?: string[];
   expertise?: string;

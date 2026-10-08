@@ -40,10 +40,12 @@ export function buildModelWebPageSchema(
 /** Person-like entity only when we have a real display name + profile URL (no fabricated fields). */
 export function buildModelProfileEntitySchema(model: CamModel) {
   const url = canonicalModelUrl(model.username);
+  const username = model.username.trim();
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: model.displayName.trim(),
+    alternateName: username,
     url,
   };
   if (model.thumbnailUrl?.startsWith("https://")) {

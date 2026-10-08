@@ -9,7 +9,13 @@ import { countryCodeToFlag, countryLabel } from "@/lib/country";
 import { resolveRoomUrl, roomLinkProps } from "@/lib/models/resolveRoomUrl";
 import type { CamModel } from "@/lib/models/types";
 import type { ModelSEO } from "@/lib/seo/modelSeo";
-import { tagPath } from "@/lib/seo/slug";
+import { categoryPath } from "@/lib/seo/slug";
+import { resolveTagLinkTarget } from "@/lib/seo/tagLinks";
+import {
+  isCategoryIndexableForModel,
+  primaryCategoryLabel,
+} from "@/lib/seo/taxonomyInventory";
+import { CATEGORY_DISPLAY } from "@/lib/seo/config";
 
 type ProfileViewProps = {
   model: CamModel;
@@ -23,19 +29,30 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
   const flag = countryCodeToFlag(model.countryCode);
   const country = countryLabel(model.countryCode, model.country);
   const description = model.description?.trim();
+  const categoryLabel = primaryCategoryLabel(model);
+  const categorySlug = model.primaryCategory?.toLowerCase();
+  const showCategoryContext =
+    categoryLabel &&
+    categorySlug &&
+    categorySlug in CATEGORY_DISPLAY &&
+    isCategoryIndexableForModel(model, seo.taxonomyIndexability);
 
   return (
     <div className="pb-4">
+      <div className="px-3 pt-3 sm:px-6">
+        <Breadcrumbs items={seo.breadcrumbs} className="mb-1" />
+      </div>
+
       <ProfileHero model={model} />
 
       <div className="space-y-6 px-3 py-4 sm:px-6">
-        <Breadcrumbs items={seo.breadcrumbs} className="mb-1" />
-        <p className="text-sm leading-relaxed text-text-secondary">{seo.intro}</p>
-
         <header>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-foreground">{seo.h1}</h1>
+              <p className="mt-1 text-sm font-medium text-text-secondary">
+                {seo.usernameDisplay}
+              </p>
               <p className="mt-1 text-sm text-text-secondary">
                 {model.age !== undefined ? `${model.age}` : null}
                 {model.age !== undefined && country ? " · " : null}
@@ -65,24 +82,12 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
               Rating: {model.stars}★
             </p>
           ) : null}
+        </header>
 
-          {seo.tags.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {seo.tags.map((tag) => (
-                <Link
-                  key={tag.slug}
-                  href={tagPath(tag.slug)}
-                  className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-text-secondary transition hover:border-accent hover:text-foreground"
-                >
-                  {tag.display}
-                </Link>
-              ))}
-            </div>
-          ) : null}
-
+        <div>
           <a
             href={roomUrl}
-            className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-card bg-accent text-base font-semibold text-white transition hover:bg-accent-hover sm:max-w-md"
+            className="flex min-h-[48px] w-full items-center justify-center rounded-card bg-accent text-base font-semibold text-white transition hover:bg-accent-hover sm:max-w-md"
             {...roomLinkProps(model)}
           >
             {model.isLive ? "Enter live room" : "View room when live"}
@@ -90,7 +95,9 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
           <p className="mt-2 text-[11px] text-text-muted">
             Sponsored link · 18+ only · nofollow sponsored
           </p>
-        </header>
+        </div>
+
+        <p className="text-sm leading-relaxed text-text-secondary">{seo.intro}</p>
 
         {description ? (
           <section aria-labelledby="about-heading">
@@ -157,6 +164,12 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
                 <dd className="font-medium">{country}</dd>
               </div>
             ) : null}
+            {model.ethnicity ? (
+              <div>
+                <dt className="text-text-muted">Ethnicity</dt>
+                <dd className="font-medium">{model.ethnicity}</dd>
+              </div>
+            ) : null}
             {model.hair ? (
               <div>
                 <dt className="text-text-muted">Hair</dt>
@@ -167,6 +180,18 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
               <div>
                 <dt className="text-text-muted">Figure</dt>
                 <dd className="font-medium">{model.figure}</dd>
+              </div>
+            ) : null}
+            {model.bustSize ? (
+              <div>
+                <dt className="text-text-muted">Bust</dt>
+                <dd className="font-medium">{model.bustSize}</dd>
+              </div>
+            ) : null}
+            {model.height ? (
+              <div>
+                <dt className="text-text-muted">Height</dt>
+                <dd className="font-medium">{model.height}</dd>
               </div>
             ) : null}
             {model.languages && model.languages.length > 0 ? (
@@ -181,6 +206,62 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
             </div>
           </dl>
         </section>
+
+        {seo.tags.length > 0 ? (
+          <section aria-labelledby="tags-heading">
+            <h2
+              id="tags-heading"
+              className="text-sm font-bold uppercase tracking-widest text-text-muted"
+            >
+              Tags
+            </h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {seo.tags.map((tag) => {
+                const target = resolveTagLinkTarget(
+                  tag,
+                  seo.taxonomyIndexability,
+                );
+                const chipClass =
+                  "rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-text-secondary";
+                if (target.crawlable && target.href) {
+                  return (
+                    <Link
+                      key={tag.slug}
+                      href={target.href}
+                      className={`${chipClass} transition hover:border-accent hover:text-foreground`}
+                    >
+                      {tag.display}
+                    </Link>
+                  );
+                }
+                return (
+                  <span key={tag.slug} className={chipClass}>
+                    {tag.display}
+                  </span>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {showCategoryContext ? (
+          <section aria-labelledby="category-heading">
+            <h2
+              id="category-heading"
+              className="text-sm font-bold uppercase tracking-widest text-text-muted"
+            >
+              Category
+            </h2>
+            <p className="mt-2 text-sm text-text-secondary">
+              <Link
+                href={categoryPath(categorySlug!)}
+                className="font-medium text-accent hover:underline"
+              >
+                {categoryLabel} cams
+              </Link>
+            </p>
+          </section>
+        ) : null}
 
         {seo.internalLinks.length > 0 ? (
           <section aria-labelledby="discover-heading">

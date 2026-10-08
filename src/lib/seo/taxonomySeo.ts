@@ -14,7 +14,11 @@ import {
 import { generateTaxonomyBreadcrumbs } from "@/lib/seo/breadcrumbGenerator";
 import { generateTaxonomyMetaDescription } from "@/lib/seo/descriptionGenerator";
 import { generateTaxonomyH1, generateTaxonomyIntro } from "@/lib/seo/introGenerator";
-import { isTaxonomyIndexable } from "@/lib/seo/indexability";
+import {
+  isCategoryOwnedSlug,
+  isFacetTaxonomyIndexable,
+  isTagTaxonomyIndexable,
+} from "@/lib/seo/strategy";
 import { buildTaxonomyWebPageSchema } from "@/lib/seo/schemaGenerator";
 import { buildBreadcrumbListSchema } from "@/lib/seo/schemaGenerator";
 import { generateTaxonomyTitle } from "@/lib/seo/titleGenerator";
@@ -72,8 +76,16 @@ export function buildTaxonomySeo(
   label: string,
   modelCount: number,
 ): TaxonomySEO {
-  const canonicalUrl = resolveCanonical(kind, slug);
-  const indexable = isTaxonomyIndexable(modelCount);
+  let canonicalUrl = resolveCanonical(kind, slug);
+  let indexable =
+    kind === "tag"
+      ? isTagTaxonomyIndexable(slug, modelCount)
+      : isFacetTaxonomyIndexable(modelCount);
+
+  if (kind === "tag" && isCategoryOwnedSlug(slug)) {
+    canonicalUrl = canonicalCategoryUrl(slug);
+    indexable = false;
+  }
   const title = generateTaxonomyTitle(label);
   const metaDescription = generateTaxonomyMetaDescription(label, modelCount);
   const h1 = generateTaxonomyH1(label);

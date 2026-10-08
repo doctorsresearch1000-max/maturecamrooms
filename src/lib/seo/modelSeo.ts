@@ -8,6 +8,14 @@ import { generateModelEntities, generateModelKeywords } from "@/lib/seo/keywordG
 import { buildModelStructuredData, type ModelStructuredData } from "@/lib/seo/schemaGenerator";
 import { normalizeModelTags, type CanonicalTag } from "@/lib/seo/tags";
 import { generateModelTitle } from "@/lib/seo/titleGenerator";
+import {
+  buildTaxonomyIndexabilityContext,
+  isCategoryIndexableForModel,
+  isCountryIndexableForModel,
+  type TaxonomyIndexabilityContext,
+} from "@/lib/seo/taxonomyInventory";
+import { getFeaturedModels } from "@/lib/models/getModels";
+import { SITEMAP_MODEL_FETCH_SIZE } from "@/lib/seo/config";
 import type { CamModel } from "@/lib/models/types";
 import type { BreadcrumbItem } from "@/lib/seo/breadcrumbGenerator";
 import type { InternalLink } from "@/lib/seo/internalLinks";
@@ -16,6 +24,8 @@ export type ModelSEO = {
   title: string;
   metaDescription: string;
   h1: string;
+  /** Visible handle, including @ prefix */
+  usernameDisplay: string;
   intro: string;
   canonicalUrl: string;
   breadcrumbs: BreadcrumbItem[];
@@ -26,29 +36,36 @@ export type ModelSEO = {
   relatedModels: CamModel[];
   structuredData: ModelStructuredData;
   indexable: boolean;
+  taxonomyIndexability: TaxonomyIndexabilityContext;
   ogImageUrl?: string;
+};
+
+export type BuildModelSeoOptions = {
+  taxonomyIndexability?: TaxonomyIndexabilityContext;
 };
 
 export function buildModelSeo(
   model: CamModel,
   relatedModels: CamModel[] = [],
-  options?: {
-    countryTaxonomyIndexable?: boolean;
-  },
+  options?: BuildModelSeoOptions,
 ): ModelSEO {
+  const taxonomyIndexability =
+    options?.taxonomyIndexability ??
+    buildTaxonomyIndexabilityContext(relatedModels.length ? relatedModels : [model]);
+
   const title = generateModelTitle(model);
   const metaDescription = generateModelMetaDescription(model);
   const h1 = generateModelH1(model);
   const intro = generateModelIntro(model);
   const canonicalUrl = canonicalModelUrl(model.username);
   const breadcrumbs = generateModelBreadcrumbs(model, {
-    categoryIndexable: true,
-    countryIndexable: options?.countryTaxonomyIndexable,
+    categoryIndexable: isCategoryIndexableForModel(model, taxonomyIndexability),
+    countryIndexable: isCountryIndexableForModel(model, taxonomyIndexability),
   });
   const tags = normalizeModelTags(model);
   const entities = generateModelEntities(model);
   const keywords = generateModelKeywords(model);
-  const internalLinks = generateModelInternalLinks(model);
+  const internalLinks = generateModelInternalLinks(model, taxonomyIndexability);
   const indexable = isModelIndexable(model);
   const structuredData = buildModelStructuredData(
     model,
@@ -61,10 +78,13 @@ export function buildModelSeo(
     ? model.thumbnailUrl
     : undefined;
 
+  const usernameDisplay = `@${model.username}`;
+
   return {
     title,
     metaDescription,
     h1,
+    usernameDisplay,
     intro,
     canonicalUrl,
     breadcrumbs,
@@ -75,8 +95,23 @@ export function buildModelSeo(
     relatedModels,
     structuredData,
     indexable,
+    taxonomyIndexability,
     ogImageUrl,
   };
+}
+
+/** Loads inventory once for accurate taxonomy indexability on profile pages. */
+export async function buildModelSeoForPage(
+  model: CamModel,
+  relatedModels: CamModel[] = [],
+): Promise<ModelSEO> {
+  const inventory = await getFeaturedModels(SITEMAP_MODEL_FETCH_SIZE, {
+    live: undefined,
+  });
+  const taxonomyIndexability = buildTaxonomyIndexabilityContext(
+    inventory.models,
+  );
+  return buildModelSeo(model, relatedModels, { taxonomyIndexability });
 }
 
 export function modelSeoToMetadata(seo: ModelSEO) {

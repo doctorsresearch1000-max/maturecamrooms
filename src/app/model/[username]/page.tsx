@@ -6,7 +6,10 @@ import {
   getModelByUsername,
   getRelatedModels,
 } from "@/lib/models/getModels";
-import { buildModelSeo, modelSeoToMetadata } from "@/lib/seo/modelSeo";
+import {
+  buildModelSeoForPage,
+  modelSeoToMetadata,
+} from "@/lib/seo/modelSeo";
 
 export const runtime = "edge";
 
@@ -22,7 +25,7 @@ export async function generateMetadata({
   if (!model) {
     return { title: "Model not found", robots: { index: false, follow: false } };
   }
-  const seo = buildModelSeo(model);
+  const seo = await buildModelSeoForPage(model);
   return modelSeoToMetadata(seo);
 }
 
@@ -33,7 +36,7 @@ export default async function ModelProfilePage({ params }: PageProps) {
     notFound();
   }
   const related = await getRelatedModels(model, 8);
-  const seo = buildModelSeo(model, related);
+  const seo = await buildModelSeoForPage(model, related);
 
   const structuredBlocks = [
     seo.structuredData.breadcrumb,
