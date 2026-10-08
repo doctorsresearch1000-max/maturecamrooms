@@ -60,7 +60,7 @@ export async function fetchPerformers(
         Accept: "application/json",
       },
       signal: controller.signal,
-      next: { revalidate: params.live ? 30 : 120 },
+      cache: "no-store",
     });
 
     if (!res.ok) {

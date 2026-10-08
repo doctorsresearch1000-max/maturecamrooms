@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { pickSafeStreamUrl } from "@/lib/crak/allowlist";
 import type { CamModel } from "@/lib/models/types";
 
@@ -48,16 +47,14 @@ export function ModelCardLiveMedia({
   return (
     <div ref={rootRef} className="absolute inset-0">
       {model.thumbnailUrl ? (
-        <Image
+        <img
           src={model.thumbnailUrl}
           alt={`${model.displayName}${model.age ? `, ${model.age}` : ""}`}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-          className={`object-cover transition duration-base group-hover:scale-[1.03] ${
+          className={`absolute inset-0 h-full w-full object-cover transition duration-base group-hover:scale-[1.03] ${
             showStream ? "opacity-0" : model.isLive ? "" : "opacity-85 saturate-[0.85]"
           }`}
           loading={priority ? "eager" : "lazy"}
-          priority={priority}
+          decoding="async"
         />
       ) : (
         <div className="absolute inset-0 bg-surface-hover" />
