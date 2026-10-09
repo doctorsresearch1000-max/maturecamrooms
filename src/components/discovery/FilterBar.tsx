@@ -9,7 +9,6 @@ const MOBILE_FILTERS: { id: DiscoveryFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "mature", label: "Mature" },
   { id: "milf", label: "MILF" },
-  { id: "cougar", label: "Cougar" },
   { id: "popular", label: "Popular" },
 ];
 

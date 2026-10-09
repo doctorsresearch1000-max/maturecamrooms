@@ -24,6 +24,11 @@ export const SITE_CATEGORIES = ["mature", "milf", "cougar", "mom"] as const;
 
 export type SiteCategory = (typeof SITE_CATEGORIES)[number];
 
+/** Categories shown in nav, chips, and sitemap niches. */
+export const NAV_SITE_CATEGORIES = ["mature", "milf"] as const;
+
+export type NavSiteCategory = (typeof NAV_SITE_CATEGORIES)[number];
+
 export const CATEGORY_DISPLAY: Record<SiteCategory, string> = {
   mature: "Mature",
   milf: "MILF",

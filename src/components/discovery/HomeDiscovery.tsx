@@ -10,11 +10,22 @@ import type { CamModel, ModelsResult } from "@/lib/models/types";
 
 type HomeDiscoveryProps = {
   models: CamModel[];
+  catalogTotal?: number;
+  liveCount?: number;
   statusMessage?: string;
   unconfigured?: boolean;
 };
 
 const PAGE_SIZE = 48;
+const MAX_MOUNTED_CARDS_MOBILE = 144;
+const MAX_MOUNTED_CARDS_DESKTOP = 216;
+
+function maxMountedCards(): number {
+  if (typeof window === "undefined") return MAX_MOUNTED_CARDS_DESKTOP;
+  return window.innerWidth >= 1024
+    ? MAX_MOUNTED_CARDS_DESKTOP
+    : MAX_MOUNTED_CARDS_MOBILE;
+}
 
 function parseFilter(param: string | null): DiscoveryFilter {
   const allowed: DiscoveryFilter[] = [
@@ -22,17 +33,17 @@ function parseFilter(param: string | null): DiscoveryFilter {
     "all",
     "mature",
     "milf",
-    "cougar",
     "popular",
     "new",
   ];
   if (param && allowed.includes(param as DiscoveryFilter)) {
     return param as DiscoveryFilter;
   }
-  return "live";
+  return "all";
 }
 
 function mergeUnique(existing: CamModel[], incoming: CamModel[]): CamModel[] {
+  const cap = maxMountedCards();
   const seen = new Set(existing.map((m) => m.id));
   const next = [...existing];
   for (const m of incoming) {
@@ -40,16 +51,22 @@ function mergeUnique(existing: CamModel[], incoming: CamModel[]): CamModel[] {
     seen.add(m.id);
     next.push(m);
   }
+  if (next.length > cap) {
+    return next.slice(next.length - cap);
+  }
   return next;
 }
 
 function sectionTitle(filter: DiscoveryFilter): string {
   if (filter === "live") return "Live now";
+  if (filter === "all") return "All models";
   return filter.charAt(0).toUpperCase() + filter.slice(1);
 }
 
 export function HomeDiscovery({
   models: initialModels,
+  catalogTotal: initialCatalogTotal,
+  liveCount: initialLiveCount,
   statusMessage,
   unconfigured,
 }: HomeDiscoveryProps) {
@@ -59,15 +76,24 @@ export function HomeDiscovery({
     parseFilter(searchParams.get("filter")),
   );
   const [catalog, setCatalog] = useState<CamModel[]>(initialModels);
+  const urlPage = useMemo(
+    () => Math.max(1, Number(searchParams.get("page") ?? "1") || 1),
+    [searchParams],
+  );
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
   const [feedBroadened, setFeedBroadened] = useState(false);
-  const [totalModels, setTotalModels] = useState<number | undefined>();
+  const [totalModels, setTotalModels] = useState<number | undefined>(
+    initialCatalogTotal,
+  );
+  const [liveCount, setLiveCount] = useState<number | undefined>(
+    initialLiveCount,
+  );
+  const [loadedCount, setLoadedCount] = useState(initialModels.length);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const inflightRef = useRef(false);
-  const initialHydrated = useRef(false);
 
   useEffect(() => {
     setFilter(parseFilter(searchParams.get("filter")));
@@ -84,7 +110,6 @@ export function HomeDiscovery({
         models: batch,
         hasMore: Boolean(data.hasMore) && batch.length > 0,
         broadened: Boolean(data.broadened),
-        effectiveFilter: data.effectiveFilter,
         total: data.total,
       };
     },
@@ -93,29 +118,22 @@ export function HomeDiscovery({
 
   useEffect(() => {
     if (unconfigured) return;
-    if (!initialHydrated.current && filter === "live") {
-      initialHydrated.current = true;
-      setCatalog(initialModels);
-      setPage(1);
-      setHasMore(initialModels.length >= PAGE_SIZE);
-      return;
-    }
-    initialHydrated.current = true;
     let cancelled = false;
     setFilterLoading(true);
-    setPage(1);
     setFeedBroadened(false);
-    fetchPage(1, filter)
+    fetchPage(urlPage, filter)
       .then(({ models, hasMore: more, broadened, total }) => {
         if (cancelled) return;
         setCatalog(models);
+        setLoadedCount(models.length);
+        setPage(urlPage);
         setHasMore(more);
         setFeedBroadened(Boolean(broadened));
-        setTotalModels(total);
+        if (total !== undefined) setTotalModels(total);
       })
       .catch(() => {
         if (!cancelled) {
-          setCatalog([]);
+          setCatalog(initialModels);
           setHasMore(false);
         }
       })
@@ -125,7 +143,21 @@ export function HomeDiscovery({
     return () => {
       cancelled = true;
     };
-  }, [filter, fetchPage, initialModels, unconfigured]);
+  }, [filter, urlPage, fetchPage, unconfigured, initialModels]);
+
+  useEffect(() => {
+    fetch("/api/taxonomy/menu")
+      .then((r) => r.json())
+      .then((data: { liveCount?: number; catalogCount?: number }) => {
+        if (typeof data.liveCount === "number") setLiveCount(data.liveCount);
+        if (typeof data.catalogCount === "number" && !initialCatalogTotal) {
+          setTotalModels(data.catalogCount);
+        }
+      })
+      .catch(() => {
+        /* keep SSR values */
+      });
+  }, [initialCatalogTotal]);
 
   const loadNextPage = useCallback(async () => {
     if (inflightRef.current || loadingMore || filterLoading || !hasMore || unconfigured) {
@@ -138,6 +170,7 @@ export function HomeDiscovery({
       const { models: batch, hasMore: more, broadened, total } =
         await fetchPage(nextPage, filter);
       setCatalog((prev) => mergeUnique(prev, batch));
+      setLoadedCount((c) => c + batch.length);
       setPage(nextPage);
       setHasMore(more);
       if (broadened) setFeedBroadened(true);
@@ -165,7 +198,7 @@ export function HomeDiscovery({
       (entries) => {
         if (entries[0]?.isIntersecting) loadNextPage();
       },
-      { rootMargin: "320px", threshold: 0 },
+      { rootMargin: "400px", threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -173,21 +206,37 @@ export function HomeDiscovery({
 
   const handleFilterChange = (next: DiscoveryFilter) => {
     setFilter(next);
-    const path = next === "live" ? "/" : `/?filter=${next}`;
+    setPage(1);
+    const path =
+      next === "all" ? "/" : next === "live" ? "/?filter=live" : `/?filter=${next}`;
     router.replace(path, { scroll: false });
   };
 
-  const liveCount = useMemo(
-    () => catalog.filter((m) => m.isLive).length,
-    [catalog],
-  );
+  const displayLiveCount = liveCount ?? 0;
+  const catalogTotal = totalModels ?? initialCatalogTotal;
+
+  const heroLine = useMemo(() => {
+    if (filter === "live") {
+      return displayLiveCount > 0
+        ? `${displayLiveCount} live now`
+        : "Live mature cam models";
+    }
+    const livePart =
+      displayLiveCount > 0 ? `${displayLiveCount} live now` : null;
+    const catalogPart =
+      catalogTotal && catalogTotal > 0
+        ? `${catalogTotal.toLocaleString()} in catalog`
+        : null;
+    if (livePart && catalogPart) return `${livePart} · ${catalogPart}`;
+    return catalogPart ?? livePart ?? "Mature & MILF cam models";
+  }, [filter, displayLiveCount, catalogTotal]);
 
   const showGridSkeleton = filterLoading && catalog.length === 0;
 
   return (
     <>
       <div
-        className="sticky top-[var(--header-h)] z-40 border-b border-white/[0.08] bg-[var(--header-bg)] lg:static lg:border-0 lg:bg-transparent"
+        className="sticky top-[var(--header-stack-h,var(--header-h-mobile))] z-40 border-b border-white/[0.08] bg-[var(--header-bg)] lg:static lg:border-0 lg:bg-transparent"
       >
         <HeaderFacetChips />
         <FilterBar active={filter} onChange={handleFilterChange} />
@@ -199,13 +248,11 @@ export function HomeDiscovery({
             id="home-hero"
             className="sr-only sm:not-sr-only sm:text-xl sm:font-bold sm:tracking-tight sm:text-foreground"
           >
-            {liveCount > 0
-              ? `${liveCount} mature live cam models online`
-              : "Mature & MILF live cam models"}
+            {heroLine}
           </h1>
           <p className="hidden text-sm text-text-secondary sm:block">
-            Watch mature, MILF and cougar webcam performers in HD. Free to browse ·
-            18+ only
+            Watch mature and MILF webcam performers in HD. Free to browse · 18+
+            only
           </p>
           {unconfigured ? (
             <p className="mt-2 rounded-md border border-white/10 bg-surface-elevated px-3 py-2 text-xs text-text-secondary">
@@ -225,7 +272,7 @@ export function HomeDiscovery({
         ) : catalog.length === 0 ? (
           <p className="mt-6 rounded-card border border-border bg-surface px-4 py-10 text-center text-sm text-text-secondary">
             {unconfigured
-              ? "Live listings will appear here when the feed is connected."
+              ? "Listings will appear here when the catalog is connected."
               : "No models match this view. Try another filter."}
           </p>
         ) : (
@@ -235,8 +282,8 @@ export function HomeDiscovery({
           >
             {feedBroadened && filter !== "live" && filter !== "all" ? (
               <p className="mb-2 rounded-md border border-white/[0.08] bg-surface-elevated px-3 py-2 text-xs text-text-secondary">
-                Few {filter} models live right now — we&apos;re showing related
-                mature performers so you can keep browsing.
+                Few {filter} models live right now — showing catalog matches so
+                you can keep browsing.
               </p>
             ) : null}
             <h2
@@ -250,20 +297,33 @@ export function HomeDiscovery({
                 />
               ) : null}
               {sectionTitle(filter)}
+              {filter !== "live" && loadedCount > 0 ? (
+                <span className="text-sm font-normal text-text-muted">
+                  ({loadedCount} loaded)
+                </span>
+              ) : null}
             </h2>
             <ModelGrid models={catalog} />
-            {filter === "all" && totalModels && totalModels > PAGE_SIZE ? (
+            {(filter === "all" || filter === "mature" || filter === "milf") &&
+            catalogTotal &&
+            catalogTotal > PAGE_SIZE ? (
               <nav
                 className="mt-4 flex flex-wrap justify-center gap-2 text-xs"
                 aria-label="Crawlable pagination"
               >
                 {Array.from(
-                  { length: Math.min(30, Math.ceil(totalModels / PAGE_SIZE)) },
+                  { length: Math.min(20, Math.ceil(catalogTotal / PAGE_SIZE)) },
                   (_, i) => i + 1,
                 ).map((p) => (
                   <a
                     key={p}
-                    href={p === 1 ? "/?filter=all" : `/?filter=all&page=${p}`}
+                    href={
+                      filter === "all"
+                        ? p === 1
+                          ? "/"
+                          : `/?filter=all&page=${p}`
+                        : `/?filter=${filter}&page=${p}`
+                    }
                     className="rounded border border-white/10 px-2 py-1 text-text-muted hover:text-white"
                   >
                     Page {p}

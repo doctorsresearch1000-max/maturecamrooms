@@ -47,7 +47,7 @@ export function SearchPanel() {
     const pool = searchResult ?? (q ? [] : catalog);
     if (!q) return { models: pool.slice(0, 16), categories: [] as string[] };
 
-    const categories = ["mature", "milf", "cougar"].filter((c) =>
+    const categories = ["mature", "milf"].filter((c) =>
       c.includes(q),
     );
     return { models: pool, categories };

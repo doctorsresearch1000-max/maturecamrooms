@@ -12,7 +12,7 @@ export function HomeJsonLd({ models }: HomeJsonLdProps) {
     "@type": "WebPage",
     name: `${siteConfig.name} — Live Mature & MILF Cams`,
     description:
-      "Discover live mature, MILF and cougar webcam models. Mobile-friendly HD live cam directory for adults 18+.",
+      "Discover live mature and MILF webcam models. Mobile-friendly HD live cam directory for adults 18+.",
     url: absoluteUrl("/"),
     isPartOf: {
       "@type": "WebSite",

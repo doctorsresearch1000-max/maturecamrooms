@@ -4,19 +4,27 @@ import Link from "next/link";
 import { useDrawerMenu } from "@/hooks/useDrawerMenu";
 
 export function HeaderFacetChips() {
-  const { headerChips, feedOk, loading } = useDrawerMenu(true);
+  const { headerChips, catalogOk, loading } = useDrawerMenu(true);
 
-  if (loading || !feedOk || headerChips.length === 0) {
+  if (loading || !catalogOk || headerChips.length === 0) {
     return null;
   }
 
+  const filtered = headerChips.filter(
+    (chip) =>
+      !chip.slug ||
+      (chip.slug !== "cougar" && chip.slug !== "mom"),
+  );
+
+  if (filtered.length === 0) return null;
+
   return (
-    <div className="relative border-b border-white/[0.06] bg-[var(--header-bg)] lg:hidden">
+    <div className="relative border-b border-white/[0.06] bg-[var(--header-bg)]">
       <div
         className="scrollbar-none flex items-center gap-2 overflow-x-auto px-3 py-2"
         aria-label="Browse by category"
       >
-        {headerChips.map((chip) => (
+        {filtered.map((chip) => (
           <Link
             key={`${chip.href}-${chip.slug}`}
             href={chip.href}
@@ -37,7 +45,7 @@ export function HeaderFacetChips() {
         ))}
       </div>
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--header-bg)] to-transparent"
+        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--header-bg)] to-transparent lg:w-12"
         aria-hidden
       />
     </div>
