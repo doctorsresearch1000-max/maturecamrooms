@@ -2,31 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { HeaderFacetChips } from "@/components/discovery/HeaderFacetChips";
 import { HeaderModelStories } from "@/components/layout/HeaderModelStories";
-import { MobileHeaderCategories } from "@/components/layout/MobileHeaderCategories";
 import { useShell } from "@/components/layout/ShellContext";
 import { siteConfig } from "@/lib/site";
 
-/** Matches main column horizontal padding (HomeDiscovery). */
 const MAIN_PAD = "px-2 sm:px-4 lg:px-6";
-
-function SearchIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="M20 20l-3.5-3.5" />
-    </svg>
-  );
-}
 
 function HamburgerIcon() {
   return (
@@ -46,13 +27,13 @@ function HamburgerIcon() {
 }
 
 export function SiteHeader() {
-  const { setDrawerOpen, setSearchOpen, favorites } = useShell();
+  const { setDrawerOpen } = useShell();
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[var(--header-bg)] lg:sticky lg:[--header-stack-h:var(--header-h)] [--header-stack-h:var(--header-h-mobile)]"
+      className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[var(--header-bg)] lg:sticky [--header-stack-h:var(--header-h-mobile)] lg:[--header-stack-h:var(--header-h-desktop-stack)]"
     >
-      {/* Mobile: logo left-aligned + categories below */}
+      {/* Mobile: logo + menú (categorías solo en FilterBar debajo) */}
       <div className="lg:hidden">
         <div
           className={`mx-auto grid h-14 max-w-[1920px] grid-cols-[2.75rem_1fr_2.75rem] items-center ${MAIN_PAD}`}
@@ -77,27 +58,22 @@ export function SiteHeader() {
             />
           </Link>
 
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="flex h-10 w-10 items-center justify-center justify-self-end text-white"
-            aria-label="Search models"
-          >
-            <SearchIcon />
-          </button>
+          <span className="w-10" aria-hidden />
         </div>
-        <MobileHeaderCategories />
       </div>
 
-      {/* Desktop: offset by sidebar width so logo aligns with card grid */}
-      <div className="mx-auto hidden max-w-[1920px] lg:flex">
-        <div
-          className="hidden w-56 shrink-0 border-r border-transparent lg:block"
-          aria-hidden
-        />
-        <div
-          className={`flex min-h-[var(--header-h)] min-w-0 flex-1 items-center gap-3 ${MAIN_PAD}`}
-        >
+      {/* Desktop: menú desplegable · stories · chips a ancho completo */}
+      <div className="mx-auto hidden max-w-[1920px] lg:block">
+        <div className={`flex h-14 items-center gap-3 ${MAIN_PAD}`}>
+          <button
+            type="button"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/[0.06]"
+            aria-label="Open browse menu"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <HamburgerIcon />
+          </button>
+
           <Link href="/" className="flex shrink-0 items-center">
             <Image
               src="/maturecamrooms-logo.png"
@@ -112,32 +88,9 @@ export function SiteHeader() {
           <div className="min-w-0 flex-1">
             <HeaderModelStories />
           </div>
-
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              className="flex min-h-[40px] min-w-[10rem] max-w-[14rem] items-center gap-2 rounded-full border border-border bg-surface-elevated px-3 text-left text-sm text-text-muted transition hover:border-accent/30"
-              aria-label="Search models"
-            >
-              <SearchIcon />
-              <span className="truncate text-text-secondary">Search models…</span>
-            </button>
-            <button
-              type="button"
-              className="relative flex h-10 min-w-[40px] items-center justify-center rounded-md px-2 text-sm font-medium text-text-secondary hover:bg-surface-hover"
-              aria-label={`Favorites, ${favorites.size} saved`}
-              onClick={() => setDrawerOpen(true)}
-            >
-              ♥
-              {favorites.size > 0 ? (
-                <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                  {favorites.size}
-                </span>
-              ) : null}
-            </button>
-          </div>
         </div>
+
+        <HeaderFacetChips fullWidth />
       </div>
     </header>
   );

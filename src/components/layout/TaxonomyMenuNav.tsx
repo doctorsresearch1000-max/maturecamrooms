@@ -153,45 +153,47 @@ export function TaxonomyMenuNav({
       </div>
 
       {variant === "drawer" ? (
-        <div className="mb-2 flex items-center gap-1 border-b border-white/[0.06] pb-3">
+        <div className="mb-2 space-y-2 border-b border-white/[0.06] pb-3">
           <button
             type="button"
-            className="flex h-10 flex-1 items-center justify-center rounded-md text-white hover:bg-white/[0.04]"
-            aria-label="Search"
+            className="flex w-full min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-surface-elevated px-4 text-left text-sm text-text-secondary hover:border-accent/30"
             onClick={() => {
               onOpenSearch?.();
               onNavigate?.();
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20l-3.5-3.5" />
             </svg>
+            <span>Search models…</span>
           </button>
-          <Link
-            href="/#favorites"
-            onClick={onNavigate}
-            className="relative flex h-10 flex-1 items-center justify-center rounded-md text-white hover:bg-white/[0.04]"
-            aria-label="Favorites"
-          >
-            <span aria-hidden>♥</span>
-            {favoritesCount > 0 ? (
-              <span className="absolute right-2 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-white">
-                {favoritesCount}
-              </span>
-            ) : null}
-          </Link>
-          <Link
-            href="/?filter=new"
-            onClick={onNavigate}
-            className="flex h-10 flex-1 items-center justify-center rounded-md text-white hover:bg-white/[0.04]"
-            aria-label="Recently online"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href="/#favorites"
+              onClick={onNavigate}
+              className="relative flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-white/[0.08] bg-surface-elevated text-sm font-semibold text-white hover:border-accent/30"
+            >
+              <span aria-hidden>♥</span>
+              <span>Favorites</span>
+              {favoritesCount > 0 ? (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">
+                  {favoritesCount}
+                </span>
+              ) : null}
+            </Link>
+            <Link
+              href="/?filter=new"
+              onClick={onNavigate}
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-white/[0.08] bg-surface-elevated text-sm font-semibold text-white hover:border-accent/30"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+              <span>New online</span>
+            </Link>
+          </div>
         </div>
       ) : null}
 

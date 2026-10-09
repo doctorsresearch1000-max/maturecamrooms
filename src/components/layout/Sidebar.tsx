@@ -3,25 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { DrawerMenuNav } from "@/components/layout/DrawerMenuNav";
-import { TaxonomyMenuNav } from "@/components/layout/TaxonomyMenuNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { Drawer } from "@/components/ui/Drawer";
-import { useDrawerMenu } from "@/hooks/useDrawerMenu";
 import { siteConfig } from "@/lib/site";
 
-export function SidebarDesktop() {
-  const menu = useDrawerMenu(true);
-  return (
-    <aside
-      className="sticky top-[var(--header-h)] hidden h-[calc(100dvh-var(--header-h))] w-56 shrink-0 flex-col border-r border-border bg-surface lg:flex"
-      aria-label="Filters and categories"
-    >
-      <TaxonomyMenuNav variant="sidebar" {...menu} />
-    </aside>
-  );
-}
-
-export function SidebarMobile() {
+/** Slide-out menu (mobile + desktop): taxonomy, search, favorites. */
+export function NavigationDrawer() {
   const { drawerOpen, setDrawerOpen, favorites, setSearchOpen } = useShell();
   const close = () => setDrawerOpen(false);
 
