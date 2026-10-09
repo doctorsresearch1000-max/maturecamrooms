@@ -59,10 +59,6 @@ jobs:
             echo "::error::CLOUDFLARE_API_TOKEN is not set in GitHub Actions secrets."
             missing=1
           fi
-          if [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
-            echo "::error::CLOUDFLARE_ACCOUNT_ID is not set in GitHub Actions secrets."
-            missing=1
-          fi
           if [ "$missing" -ne 0 ]; then
             echo "See docs/cloudflare-pages-crak-build.md"
             exit 1
@@ -84,5 +80,6 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # account_id is pinned in wrangler.toml (MatureCamRooms). Do not pass
+          # CLOUDFLARE_ACCOUNT_ID from secrets — a mismatched ID causes API 10000.
           command: pages deploy .vercel/output/static --project-name=maturecamrooms --branch=${{ github.ref_name }}
