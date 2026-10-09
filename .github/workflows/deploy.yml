@@ -92,11 +92,17 @@ jobs:
           accountId: b1a465896521acc54d57f28ce75cc717
           command: pages deploy .vercel/output/static --project-name=maturecamrooms --branch=${{ github.ref_name }}
 
-      - name: Verify preview model profile URLs
+      - name: Verify model profile URLs (preview or production)
+        env:
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          PAGES_PREVIEW_URL: ${{ github.ref == 'refs/heads/main' && 'https://maturecamrooms.com' || '' }}
         run: |
           set -euo pipefail
-          echo "Waiting 30s for Pages preview propagation…"
-          sleep 30
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Waiting 30s for branch preview propagation…"
+            sleep 30
+          fi
           node scripts/verify-preview-model-urls.mjs
 
       - name: Verify production CRAK health

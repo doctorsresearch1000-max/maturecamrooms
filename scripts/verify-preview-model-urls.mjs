@@ -3,6 +3,7 @@
  *
  * Env:
  *   PAGES_PREVIEW_URL — base URL (no trailing slash). Default from GITHUB_REF_NAME.
+ *   GITHUB_REF — full ref (e.g. refs/heads/main)
  *   SAMPLE_SIZE — default 30
  *   MAX_FAILURES — default 2
  */
@@ -17,10 +18,11 @@ function previewBaseUrl() {
   if (process.env.PAGES_PREVIEW_URL) {
     return process.env.PAGES_PREVIEW_URL.replace(/\/$/, "");
   }
-  const branch = (process.env.GITHUB_REF_NAME ?? "main").replace(/\//g, "-");
-  if (branch === "main") {
+  const ref = process.env.GITHUB_REF ?? "";
+  if (ref === "refs/heads/main" || process.env.GITHUB_REF_NAME === "main") {
     return "https://maturecamrooms.com";
   }
+  const branch = (process.env.GITHUB_REF_NAME ?? "main").replace(/\//g, "-");
   return `https://${branch}.maturecamrooms.pages.dev`;
 }
 
@@ -50,6 +52,30 @@ function pickRandom(items, n) {
   return out;
 }
 
+async function probeBaseUrl(base) {
+  const probe = `${base}/api/crak/health`;
+  try {
+    const res = await fetch(probe, {
+      redirect: "follow",
+      headers: { "User-Agent": "maturecamrooms-ci-verify/1.0" },
+    });
+    if (res.status === 404 || res.status === 522 || res.status === 525) {
+      return { ok: false, status: res.status, probe };
+    }
+    if (res.status >= 500) {
+      return { ok: false, status: res.status, probe };
+    }
+    return { ok: true, status: res.status, probe };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 0,
+      probe,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 async function checkUrl(url) {
   try {
     const res = await fetch(url, {
@@ -69,6 +95,14 @@ async function checkUrl(url) {
 
 async function main() {
   const base = previewBaseUrl();
+  const baseProbe = await probeBaseUrl(base);
+  if (!baseProbe.ok) {
+    console.error(
+      `::error::Pages preview base URL is not reachable: ${base} (probed ${baseProbe.probe}, status=${baseProbe.status}${baseProbe.error ? `, ${baseProbe.error}` : ""}). For cursor/** branches Cloudflare uses https://<branch-with-slashes-as-dashes>.maturecamrooms.pages.dev — set PAGES_PREVIEW_URL if the alias differs.`,
+    );
+    process.exit(1);
+  }
+
   const all = collectModelUrls();
   if (all.length < SAMPLE_SIZE) {
     console.error(
@@ -85,7 +119,7 @@ async function main() {
 
   console.log(
     JSON.stringify(
-      { base, sampled: targets.length, sitemapPool: all.length },
+      { base, baseProbeStatus: baseProbe.status, sampled: targets.length, sitemapPool: all.length },
       null,
       2,
     ),
@@ -100,7 +134,7 @@ async function main() {
 
   if (failures.length > MAX_FAILURES) {
     console.error(
-      `::error::${failures.length} of ${SAMPLE_SIZE} model URLs failed (max ${MAX_FAILURES}).`,
+      `::error::${failures.length} of ${SAMPLE_SIZE} model URLs failed on ${base} (max ${MAX_FAILURES}).`,
     );
     process.exit(1);
   }
