@@ -4,6 +4,16 @@ import type { DiscoveryFilterId } from "@/lib/models/filterQuery";
 
 export type DiscoveryFilter = DiscoveryFilterId;
 
+const FILTER_EMOJI: Record<DiscoveryFilter, string> = {
+  live: "🔴",
+  all: "✦",
+  mature: "●",
+  milf: "◆",
+  popular: "★",
+  new: "🕐",
+  cougar: "◇",
+};
+
 const MOBILE_FILTERS: { id: DiscoveryFilter; label: string }[] = [
   { id: "live", label: "Live now" },
   { id: "all", label: "All" },
@@ -40,6 +50,7 @@ export function FilterBar({ active, onChange }: FilterBarProps) {
         >
           {MOBILE_FILTERS.map((filter) => {
             const isActive = active === filter.id;
+            const emoji = FILTER_EMOJI[filter.id];
             return (
               <button
                 key={filter.id}
@@ -47,9 +58,10 @@ export function FilterBar({ active, onChange }: FilterBarProps) {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => onChange(filter.id)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold leading-none transition duration-fast ${pillClass(isActive)}`}
+                className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-semibold leading-none transition duration-fast ${pillClass(isActive)}`}
               >
-                {filter.label}
+                <span className="text-[11px]" aria-hidden>{emoji}</span>
+                <span>{filter.label}</span>
               </button>
             );
           })}
@@ -66,6 +78,7 @@ export function FilterBar({ active, onChange }: FilterBarProps) {
       >
         {DESKTOP_FILTERS.map((filter) => {
           const isActive = active === filter.id;
+          const emoji = FILTER_EMOJI[filter.id];
           return (
             <button
               key={filter.id}
@@ -73,9 +86,10 @@ export function FilterBar({ active, onChange }: FilterBarProps) {
               role="tab"
               aria-selected={isActive}
               onClick={() => onChange(filter.id)}
-              className={`min-h-[40px] shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition duration-fast lg:text-sm ${pillClass(isActive)}`}
+              className={`flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition duration-fast lg:text-sm ${pillClass(isActive)}`}
             >
-              {filter.label}
+              <span className="text-sm" aria-hidden>{emoji}</span>
+              <span>{filter.label}</span>
             </button>
           );
         })}
