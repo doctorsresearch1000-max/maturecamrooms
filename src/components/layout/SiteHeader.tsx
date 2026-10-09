@@ -59,13 +59,15 @@ export function SiteHeader() {
           <HamburgerIcon />
         </button>
 
-        <Link
-          href="/"
-          className="flex justify-center px-2 text-center"
-        >
-          <span className="truncate text-[1.05rem] font-bold tracking-tight text-white sm:text-lg">
-            {siteConfig.name}
-          </span>
+        <Link href="/" className="flex min-w-0 justify-center px-1">
+          <Image
+            src="/maturecamrooms-logo.png"
+            alt={siteConfig.name}
+            width={747}
+            height={59}
+            className="h-[1.375rem] w-auto max-w-[min(58vw,12.5rem)]"
+            priority
+          />
         </Link>
 
         <button

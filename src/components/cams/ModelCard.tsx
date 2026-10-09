@@ -9,6 +9,10 @@ type ModelCardProps = {
   priority?: boolean;
 };
 
+/** ~10% shorter than 3:4 — more rows visible at 390px without shrinking type. */
+const CARD_ASPECT =
+  "aspect-[5/6] lg:aspect-[3/4]";
+
 export function ModelCard({ model, priority = false }: ModelCardProps) {
   const profileHref = `/model/${model.username}`;
   const flag = countryCodeToFlag(model.countryCode);
@@ -17,8 +21,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
       ? formatViewerCount(model.viewers)
       : null;
 
-  const cardClass =
-    "relative block aspect-[3/4] touch-manipulation overflow-hidden rounded-[var(--radius-card)] bg-surface-elevated shadow-[0_8px_24px_rgba(0,0,0,0.45)] sm:rounded-card";
+  const cardClass = `relative block ${CARD_ASPECT} touch-manipulation overflow-hidden rounded-[var(--radius-card)] border border-white/[0.05] bg-surface-elevated shadow-[0_2px_10px_rgba(0,0,0,0.28)]`;
 
   const inner = (
     <>
@@ -26,7 +29,7 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
         <img
           src={model.thumbnailUrl}
           alt={`${model.displayName}${model.age ? `, ${model.age}` : ""}`}
-          className={`absolute inset-0 h-full w-full object-cover transition duration-base group-hover:scale-[1.02] ${
+          className={`absolute inset-0 h-full w-full object-cover transition duration-base group-hover:scale-[1.015] ${
             model.isLive ? "" : "opacity-88 saturate-[0.92]"
           }`}
           loading={priority ? "eager" : "lazy"}
@@ -38,46 +41,50 @@ export function ModelCard({ model, priority = false }: ModelCardProps) {
 
       {model.isLive ? (
         <span
-          className="live-pulse absolute left-2 top-2 flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm"
+          className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-md bg-black/50 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white/95"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+          <span
+            className="live-dot-subtle h-1.5 w-1.5 rounded-full bg-accent"
+            aria-hidden
+          />
           Live
         </span>
       ) : (
         <span
-          className="absolute left-2 top-2 rounded-md bg-black/50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/75 backdrop-blur-sm"
+          className="absolute left-1.5 top-1.5 rounded-md bg-black/45 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-white/70"
         >
           {model.recentlyOnline ? "Recent" : "Off"}
         </span>
       )}
 
-      <div className="absolute right-1.5 top-1.5 z-20">
+      <div className="absolute right-1 top-1 z-20">
         <FavoriteButton
           modelId={model.id}
-          className="!h-8 !w-8 !bg-black/40 !text-base"
+          className="!h-7 !w-7 !bg-black/35 !text-[15px] backdrop-blur-[2px]"
         />
       </div>
 
-      {viewerLabel ? (
-        <span
-          className="pointer-events-none absolute bottom-9 right-2 z-10 text-[10px] font-medium text-white/80"
-        >
-          {viewerLabel}
-        </span>
-      ) : null}
-
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent px-2 pb-2 pt-10"
+        className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[3.25rem] items-end justify-between gap-1 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-2 pb-1.5 pt-6"
       >
-        <p className="truncate text-[13px] font-semibold leading-tight tracking-tight text-white">
+        <p className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-snug text-white">
           {model.displayName}
           {model.age ? (
-            <span className="font-normal text-white/90"> · {model.age}</span>
+            <span className="font-medium text-white/88"> · {model.age}</span>
           ) : null}
           {flag ? (
-            <span className="ml-1 text-sm" aria-hidden>{flag}</span>
+            <span className="ml-0.5 text-[11px]" aria-hidden>{flag}</span>
           ) : null}
         </p>
+        {viewerLabel ? (
+          <span className="shrink-0 pb-0.5 text-[10px] font-medium text-white/75">
+            {viewerLabel}
+          </span>
+        ) : (
+          <span className="shrink-0 pb-0.5 text-[10px] opacity-0" aria-hidden>
+            ·
+          </span>
+        )}
       </div>
 
       <span
