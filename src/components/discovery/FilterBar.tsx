@@ -31,33 +31,39 @@ type FilterBarProps = {
 export function FilterBar({ active, onChange }: FilterBarProps) {
   return (
     <>
-      <div
-        className="scrollbar-none flex items-center gap-2 overflow-x-auto px-3 py-1.5 lg:hidden"
-        role="tablist"
-        aria-label="Browse categories"
-      >
-        {MOBILE_FILTERS.map((filter) => {
-          const isActive = active === filter.id;
-          const isLive = filter.id === "live";
-          return (
-            <button
-              key={filter.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => onChange(filter.id)}
-              className={`shrink-0 rounded-full px-3 py-1 text-[13px] font-semibold leading-none transition duration-fast ${
-                isActive && isLive
-                  ? "bg-accent text-white shadow-[0_2px_12px_rgba(255,107,107,0.35)]"
-                  : isActive
-                    ? "bg-white/12 text-white"
-                    : "bg-white/[0.04] text-text-secondary hover:bg-white/[0.08] hover:text-white"
-              }`}
-            >
-              {filter.label}
-            </button>
-          );
-        })}
+      <div className="relative lg:hidden">
+        <div
+          className="scrollbar-none flex items-center gap-2 overflow-x-auto py-1.5 pl-3 pr-8"
+          role="tablist"
+          aria-label="Browse categories"
+        >
+          {MOBILE_FILTERS.map((filter) => {
+            const isActive = active === filter.id;
+            const isLive = filter.id === "live";
+            return (
+              <button
+                key={filter.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => onChange(filter.id)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold leading-none transition duration-fast ${
+                  isActive && isLive
+                    ? "bg-accent text-white"
+                    : isActive
+                      ? "bg-white/10 text-white"
+                      : "bg-white/[0.05] text-text-secondary"
+                }`}
+              >
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-surface via-surface/80 to-transparent"
+          aria-hidden
+        />
       </div>
       <div
         className="scrollbar-none hidden items-center gap-1.5 overflow-x-auto py-2 lg:flex"

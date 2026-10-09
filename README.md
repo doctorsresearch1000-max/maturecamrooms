@@ -52,54 +52,43 @@ Remote: `https://github.com/doctorsresearch1000-max/maturecamrooms.git` (trackin
 
 ## Cloudflare Pages deploy
 
-### Option A — Git integration (recommended for production)
+**Authoritative path:** GitHub Actions (`.github/workflows/deploy.yml`) builds with `npm run pages:build` and deploys via Wrangler on pushes to `main` and `cursor/**`.
 
-Use this when you want Cloudflare to build on every push to `main` (no GitHub Actions secrets required).
+### 1. GitHub Actions secrets (required)
 
-1. **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Repository: `doctorsresearch1000-max/maturecamrooms`, branch **`main`**.
-3. **Build settings**
-   - Root directory: `/` (repo root is this project)
-   - Build command: `npm run pages:build`
-   - Build output directory: `.vercel/output/static`
-   - Node.js version: **20**
-4. **Environment variables** (Production + Preview): copy from `.env.example` and add affiliate IDs.
-   - **`CRAK_API_KEY` and `CRAK_TOKEN`** (or legacy aliases in `.env.example`) must be set under **Pages → Environment variables** for **Production** so the **build** can run `npm run generate:sitemap`. Runtime-only Functions secret bindings are not enough — see [`docs/cloudflare-pages-crak-build.md`](docs/cloudflare-pages-crak-build.md).
-5. Save and deploy. Each green build gets a `*.pages.dev` URL.
+Add **Settings → Secrets and variables → Actions**:
 
-**Custom domains**
+| Secret | Purpose |
+|--------|---------|
+| `CRAK_API_KEY` | Build-time sitemap + runtime API |
+| `CRAK_TOKEN` | Build-time sitemap + runtime API |
+| `CLOUDFLARE_API_TOKEN` | Pages deploy (Edit permission) |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID |
 
-1. Project → **Custom domains** → **Set up a domain**.
-2. Add `maturecamrooms.com` (apex) and `www.maturecamrooms.com`.
-3. Cloudflare will show DNS records (often CNAME `www` → `<project>.pages.dev` and apex flattening or A/AAAA if the zone is on Cloudflare).
-4. Enable **Always Use HTTPS** and redirect `www` → apex (or the reverse) under **Rules** / **Bulk Redirects** if you want a single canonical host (match `NEXT_PUBLIC_SITE_URL`).
+Optional: `CRAK_CAM_API_BASE`, `CRAK_BRANDS`, `CRAK_LANDING_ID`, or legacy `CRAKREVENUE_*` names.
 
-**Verify build status**
+Cloudflare dashboard variables are **not** available to GitHub Actions. Failed builds with empty `CRAK_API_KEY` in the Actions log mean these GitHub secrets are missing.
 
-- Cloudflare: **Workers & Pages** → project **maturecamrooms** → **Deployments** (latest = Production when assigned).
-- GitHub: **Actions** → workflow **Cloudflare Pages** → job **Verify pages build** must be green on every push.
+See [`docs/cloudflare-pages-crak-build.md`](docs/cloudflare-pages-crak-build.md) for Preview vs Production scoping and runtime-only binding pitfalls.
 
-> If you connect Cloudflare Git **and** run Wrangler deploy from Actions, you may deploy twice. Prefer Option A only, or disable Cloudflare’s auto-build and use Option B/C.
+### 2. Cloudflare Pages project
 
-### Option B — GitHub Actions + Wrangler (manual)
+- Build command (if Git integration stays connected): `npm run pages:build`
+- Build output: `.vercel/output/static`
+- Node **20**
 
-The workflow `.github/workflows/deploy-cloudflare-pages.yml` runs **`verify` on every push** and **`deploy` only on manual *Run workflow***.
+To avoid **two competing builds**, pause or disconnect automatic Git builds in Cloudflare when using Actions, **or** disable the GitHub workflow and scope CRAK vars to both **Production** and **Preview** in the dashboard.
 
-Add repository secrets:
+**Custom domains:** project → **Custom domains** → `maturecamrooms.com` / `www` (match `NEXT_PUBLIC_SITE_URL`).
 
-| Secret | Value |
-|--------|--------|
-| `CLOUDFLARE_API_TOKEN` | API token with **Cloudflare Pages — Edit** |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID from Cloudflare dashboard |
-
-Then: **Actions** → **Cloudflare Pages** → **Run workflow**.
-
-### Option C — Wrangler CLI (local)
+### 3. Local / manual Wrangler deploy
 
 ```bash
 npm run pages:build
-npx wrangler pages deploy .vercel/output/static --project-name=maturecamrooms
+npx wrangler pages deploy .vercel/output/static --project-name=maturecamrooms --branch=<branch>
 ```
+
+Requires `CRAK_*` in `.env.local` or the shell environment and `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
 
 ## Affiliate rules
 
@@ -116,5 +105,5 @@ src/
 
 ## GitHub Actions
 
-- **Push to `main`:** validates `npm run pages:build` (CI).
-- **Manual deploy:** *Run workflow* after Cloudflare secrets are configured (Option B).
+- **Push to `main` or `cursor/**`:** `npm run pages:build` then Wrangler deploy (after repository secrets are configured).
+- **Manual:** *Run workflow* from the Actions tab (`workflow_dispatch`).
