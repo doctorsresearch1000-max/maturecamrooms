@@ -3,6 +3,7 @@ import {
   discoveryFilterToQuery,
   type DiscoveryFilterId,
 } from "@/lib/models/filterQuery";
+import { browseCatalog } from "@/lib/models/catalogBrowse";
 import { getModelsPage, searchModels } from "@/lib/models/getModels";
 import type { ModelsResult } from "@/lib/models/types";
 
@@ -13,6 +14,24 @@ async function fetchDiscoveryPage(
   page: number,
   limit: number,
 ): Promise<ModelsResult & { effectiveFilter?: string; broadened?: boolean }> {
+  if (filter === "all") {
+    const result = await browseCatalog({ page, limit });
+    return { ...result, effectiveFilter: "all" };
+  }
+
+  const categoryFilters = ["mature", "milf", "cougar"] as const;
+  if (categoryFilters.includes(filter as (typeof categoryFilters)[number])) {
+    const result = await browseCatalog({
+      page,
+      limit,
+      category: filter,
+      liveOnly: false,
+    });
+    if (result.models.length > 0 || page > 1) {
+      return { ...result, effectiveFilter: filter };
+    }
+  }
+
   const chain = discoveryFilterFallbackChain(filter);
   const primaryFilter = chain[0] ?? "live";
   const result = await getModelsPage(
@@ -69,6 +88,7 @@ export async function GET(request: Request) {
     Math.max(1, Number(searchParams.get("limit") ?? "24") || 24),
   );
   const filterParam = searchParams.get("filter") as DiscoveryFilterId | null;
+  const source = searchParams.get("source");
 
   const liveParam = searchParams.get("live");
   const liveFromParam =
@@ -87,11 +107,33 @@ export async function GET(request: Request) {
     });
   }
 
+  if (source === "catalog") {
+    const category = searchParams.get("category") ?? undefined;
+    const result = await browseCatalog({
+      page,
+      limit,
+      category,
+      liveOnly: liveFromParam === true,
+    });
+    return Response.json(result, {
+      status: result.source === "error" ? 503 : 200,
+    });
+  }
+
   if (filterParam) {
     const result = await fetchDiscoveryPage(filterParam, page, limit);
     return Response.json(result, {
       status: result.source === "error" ? 503 : 200,
     });
+  }
+
+  if (liveFromParam === undefined && source !== "live") {
+    const catalog = await browseCatalog({ page, limit });
+    if (catalog.models.length > 0) {
+      return Response.json(catalog, {
+        status: catalog.source === "error" ? 503 : 200,
+      });
+    }
   }
 
   const queryOpts = {

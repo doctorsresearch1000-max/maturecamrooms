@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MatureCamRooms">
+  <rect width="512" height="512" rx="96" fill="#E31B23"/>
+  <path fill="#fff" d="M128 360V152h72c44 0 72 28 72 72 0 28-14 52-36 64l52 72h-80l-44-64h-36v64H128zm72-120c20 0 32-12 32-32s-12-32-32-32h-36v64h36zm120 120h-40l56-80-52-72h76l36 52 36-52h76l-52 72 56 80h-40l-28-40-28 40z"/>
+  <circle cx="392" cy="128" r="28" fill="#fff"/>
+</svg>

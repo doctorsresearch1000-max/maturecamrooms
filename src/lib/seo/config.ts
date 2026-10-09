@@ -14,10 +14,10 @@ export const RELATED_MODEL_LIMIT = 8;
 export const CRAK_REQUEST_PAGE_SIZE = 48;
 
 /** Max paginated CRAK list requests per sitemap/taxonomy inventory pass. */
-export const SITEMAP_MAX_PAGES = 16;
+export const SITEMAP_MAX_PAGES = 50;
 
-/** Max unique performer candidates collected from CRAK per sitemap pass (~605 mature+age offline). */
-export const SITEMAP_MAX_CANDIDATES = 650;
+/** Max unique performer candidates collected from CRAK per catalog/sitemap pass. */
+export const SITEMAP_MAX_CANDIDATES = 5000;
 
 /** Site categories owned by MatureCamRooms (not raw Crak tags). */
 export const SITE_CATEGORIES = ["mature", "milf", "cougar", "mom"] as const;

@@ -15,7 +15,7 @@ import {
   isTagTaxonomyIndexable,
 } from "@/lib/seo/strategy";
 import { normalizeModelTags } from "@/lib/seo/tags";
-import { buildLiveMenuInventory } from "@/lib/taxonomy/liveMenuInventory";
+import { buildCatalogSitemapBundle } from "@/lib/taxonomy/catalogInventory";
 import type { CamModel } from "@/lib/models/types";
 
 export type TaxonomyIndexabilityContext = {
@@ -31,39 +31,8 @@ export type TaxonomyIndexabilityContext = {
 export function buildTaxonomyIndexabilityContext(
   models: CamModel[],
 ): TaxonomyIndexabilityContext {
-  const live = models.filter((m) => m.isLive);
-  const menuInv = buildLiveMenuInventory(live, live.length > 0);
-
-  const indexableCategories = new Set<string>();
-  for (const item of menuInv.niches) {
-    indexableCategories.add(item.slug);
-  }
-
-  const indexableCountries = new Set<string>();
-  const countrySlugs = new Set<string>();
-  for (const model of models) {
-    const label = countryLabel(model.countryCode, model.country);
-    if (!label) continue;
-    countrySlugs.add(slugify(label));
-  }
-  for (const item of menuInv.countries) {
-    indexableCountries.add(item.slug);
-  }
-
-  const indexableLanguages = new Set<string>();
-  const langSlugs = new Set<string>();
-  for (const model of models) {
-    for (const lang of model.languages ?? []) {
-      const slug = slugify(lang.trim());
-      if (slug) langSlugs.add(slug);
-    }
-  }
-  for (const slug of langSlugs) {
-    const count = filterModelsByLanguage(models, slug).length;
-    if (isFacetTaxonomyIndexable(count)) {
-      indexableLanguages.add(slug);
-    }
-  }
+  const bundle = buildCatalogSitemapBundle(models);
+  const ctx = bundle.taxonomyContext;
 
   const tagSlugCounts = new Map<string, number>();
   for (const model of models) {
@@ -81,14 +50,25 @@ export function buildTaxonomyIndexabilityContext(
     }
   }
 
+  const langSlugs = new Set<string>();
+  for (const model of models) {
+    for (const lang of model.languages ?? []) {
+      const slug = slugify(lang.trim());
+      if (slug) langSlugs.add(slug);
+    }
+  }
+  const indexableLanguages = new Set(ctx.indexableLanguages);
+  for (const slug of langSlugs) {
+    const count = filterModelsByLanguage(models, slug).length;
+    if (isFacetTaxonomyIndexable(count)) {
+      indexableLanguages.add(slug);
+    }
+  }
+
   return {
-    indexableCategories,
+    ...ctx,
     indexableTags,
-    indexableCountries,
     indexableLanguages,
-    indexableAgeBands: menuInv.indexableAge,
-    indexableEthnicities: menuInv.indexableEthnicity,
-    indexableHairs: menuInv.indexableHair,
   };
 }
 

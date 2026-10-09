@@ -1,10 +1,17 @@
-import { TAXONOMY_MIN_MODEL_COUNT } from "@/lib/seo/config";
+import {
+  FACET_CANONICAL_OVERLAP_RATIO,
+  FACET_MENU_MIN_COUNT,
+  FACET_SITEMAP_MIN_COUNT,
+} from "@/lib/taxonomy/settings";
 
-/** Minimum live models for menu visibility, indexability, and sitemap inclusion. */
-export const FACET_MIN_MODEL_COUNT = TAXONOMY_MIN_MODEL_COUNT;
+/** @deprecated Use FACET_MENU_MIN_COUNT or FACET_SITEMAP_MIN_COUNT */
+export const FACET_MIN_MODEL_COUNT = FACET_MENU_MIN_COUNT;
 
-/** When two facets share at least this fraction of the smaller set, secondary is canonicalized. */
-export const FACET_CANONICAL_OVERLAP_RATIO = 0.9;
+export {
+  FACET_CANONICAL_OVERLAP_RATIO,
+  FACET_MENU_MIN_COUNT,
+  FACET_SITEMAP_MIN_COUNT,
+};
 
 export const NICHE_FACET_SLUGS = ["mature", "milf", "cougar", "mom"] as const;
 

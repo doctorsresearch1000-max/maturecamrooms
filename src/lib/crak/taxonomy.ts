@@ -2,47 +2,63 @@ import type { CrakPerformer } from "@/lib/crak/types";
 
 export type MatureCategory = "mature" | "milf" | "cougar" | "mom";
 
-const MILF_SIGNALS = ["milf", "housewife"];
-const COUGAR_SIGNALS = ["cougar", "mature"];
-const MOM_SIGNALS = ["mom", "housewife"];
+const CATEGORY_PRIORITY: MatureCategory[] = [
+  "mature",
+  "milf",
+  "cougar",
+  "mom",
+];
 
-export function mapPerformerTaxonomy(performer: CrakPerformer): {
-  categories: MatureCategory[];
-  tags: string[];
-} {
-  const raw = [
+function tagBlob(performer: CrakPerformer): string[] {
+  return [
     ...(performer.characteristicsTags ?? []),
     ...(performer.autoTags ?? []),
     ...(performer.customTags ?? []),
   ]
     .map((t) => t.toLowerCase().trim())
     .filter(Boolean);
+}
 
-  const unique = [...new Set(raw)];
+function hasTag(tags: string[], needles: string[]): boolean {
+  return tags.some((tag) => needles.some((n) => tag.includes(n)));
+}
+
+export function mapPerformerTaxonomy(performer: CrakPerformer): {
+  categories: MatureCategory[];
+  tags: string[];
+} {
+  const unique = [...new Set(tagBlob(performer))];
   const categories = new Set<MatureCategory>();
-
   const age = performer.characteristic?.age;
-  if (age !== undefined && age >= 40) categories.add("mature");
-  if (age !== undefined && age >= 35 && age < 50) categories.add("milf");
 
-  for (const tag of unique) {
-    if (MILF_SIGNALS.some((s) => tag.includes(s))) categories.add("milf");
-    if (COUGAR_SIGNALS.some((s) => tag.includes(s))) categories.add("cougar");
-    if (MOM_SIGNALS.some((s) => tag.includes(s))) categories.add("mom");
-    if (tag.includes("mature") || tag.includes("gc_40") || tag.includes("gc_50")) {
-      categories.add("mature");
-    }
+  if (hasTag(unique, ["milf"])) categories.add("milf");
+  if (hasTag(unique, ["housewife"]) && !hasTag(unique, ["milf"])) {
+    categories.add("milf");
+  }
+  if (hasTag(unique, ["cougar"])) categories.add("cougar");
+  if (hasTag(unique, ["mom", "mommy", "mama"])) categories.add("mom");
+  if (
+    hasTag(unique, ["mature", "gc_40", "gc_50", "50_plus", "granny"]) ||
+    (typeof age === "number" && age >= 50)
+  ) {
+    categories.add("mature");
+  } else if (typeof age === "number" && age >= 40) {
+    categories.add("mature");
   }
 
-  if (categories.size === 0) categories.add("mature");
+  if (categories.size === 0) {
+    if (typeof age === "number" && age >= 35) categories.add("milf");
+    else categories.add("mature");
+  }
 
+  const ordered = CATEGORY_PRIORITY.filter((c) => categories.has(c));
   const displayTags = unique
     .filter((t) => !t.startsWith("lang") && !t.startsWith("gc_"))
     .slice(0, 12);
 
   return {
-    categories: [...categories],
-    tags: displayTags.length > 0 ? displayTags : [...categories],
+    categories: ordered.length > 0 ? ordered : ["mature"],
+    tags: displayTags.length > 0 ? displayTags : ordered,
   };
 }
 

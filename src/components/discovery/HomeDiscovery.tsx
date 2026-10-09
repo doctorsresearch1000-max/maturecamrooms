@@ -64,6 +64,7 @@ export function HomeDiscovery({
   const [loadingMore, setLoadingMore] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
   const [feedBroadened, setFeedBroadened] = useState(false);
+  const [totalModels, setTotalModels] = useState<number | undefined>();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const inflightRef = useRef(false);
   const initialHydrated = useRef(false);
@@ -77,13 +78,14 @@ export function HomeDiscovery({
       const res = await fetch(
         `/api/models?page=${targetPage}&limit=${PAGE_SIZE}&filter=${activeFilter}`,
       );
-      const data = (await res.json()) as ModelsResult;
+      const data = (await res.json()) as ModelsResult & { total?: number };
       const batch = data.models ?? [];
       return {
         models: batch,
         hasMore: Boolean(data.hasMore) && batch.length > 0,
         broadened: Boolean(data.broadened),
         effectiveFilter: data.effectiveFilter,
+        total: data.total,
       };
     },
     [],
@@ -104,11 +106,12 @@ export function HomeDiscovery({
     setPage(1);
     setFeedBroadened(false);
     fetchPage(1, filter)
-      .then(({ models, hasMore: more, broadened }) => {
+      .then(({ models, hasMore: more, broadened, total }) => {
         if (cancelled) return;
         setCatalog(models);
         setHasMore(more);
         setFeedBroadened(Boolean(broadened));
+        setTotalModels(total);
       })
       .catch(() => {
         if (!cancelled) {
@@ -132,12 +135,13 @@ export function HomeDiscovery({
     setLoadingMore(true);
     const nextPage = page + 1;
     try {
-      const { models: batch, hasMore: more, broadened } =
+      const { models: batch, hasMore: more, broadened, total } =
         await fetchPage(nextPage, filter);
       setCatalog((prev) => mergeUnique(prev, batch));
       setPage(nextPage);
       setHasMore(more);
       if (broadened) setFeedBroadened(true);
+      if (total !== undefined) setTotalModels(total);
     } catch {
       setHasMore(false);
     } finally {
@@ -248,6 +252,25 @@ export function HomeDiscovery({
               {sectionTitle(filter)}
             </h2>
             <ModelGrid models={catalog} />
+            {filter === "all" && totalModels && totalModels > PAGE_SIZE ? (
+              <nav
+                className="mt-4 flex flex-wrap justify-center gap-2 text-xs"
+                aria-label="Crawlable pagination"
+              >
+                {Array.from(
+                  { length: Math.min(30, Math.ceil(totalModels / PAGE_SIZE)) },
+                  (_, i) => i + 1,
+                ).map((p) => (
+                  <a
+                    key={p}
+                    href={p === 1 ? "/?filter=all" : `/?filter=all&page=${p}`}
+                    className="rounded border border-white/10 px-2 py-1 text-text-muted hover:text-white"
+                  >
+                    Page {p}
+                  </a>
+                ))}
+              </nav>
+            ) : null}
             <div
               ref={loadMoreRef}
               className="flex min-h-[3rem] flex-col items-center justify-center gap-2 py-4"
