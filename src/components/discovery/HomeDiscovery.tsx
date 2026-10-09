@@ -236,7 +236,7 @@ export function HomeDiscovery({
   return (
     <>
       <div
-        className="sticky top-[var(--header-h)] z-40 border-b border-white/[0.08] bg-[var(--header-bg)] lg:static lg:border-0 lg:bg-transparent"
+        className="sticky top-[var(--header-stack-h,var(--header-h-mobile))] z-40 border-b border-white/[0.08] bg-[var(--header-bg)] lg:static lg:border-0 lg:bg-transparent"
       >
         <HeaderFacetChips />
         <FilterBar active={filter} onChange={handleFilterChange} />
