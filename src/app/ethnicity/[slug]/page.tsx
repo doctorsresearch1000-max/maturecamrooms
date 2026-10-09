@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TaxonomyPageShell } from "@/components/seo/TaxonomyPageShell";
-import { filterModelsByCountry } from "@/lib/seo/filters";
+import { filterModelsByEthnicity } from "@/lib/taxonomy/facetFilters";
+import { labelFromSlug } from "@/lib/taxonomy/facetLabels";
 import { buildFacetTaxonomyContext } from "@/lib/taxonomy/facetPageContext";
 import { slugify } from "@/lib/seo/slug";
 import { taxonomySeoToMetadata } from "@/lib/seo/taxonomySeo";
@@ -9,36 +10,29 @@ export const runtime = "edge";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-function countryLabelFromSlug(slug: string): string {
-  return slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const countrySlug = slugify(slug);
-  const label = countryLabelFromSlug(countrySlug);
+  const ethSlug = slugify(slug);
+  const label = labelFromSlug(ethSlug);
   const { seo } = await buildFacetTaxonomyContext(
-    "country",
-    countrySlug,
+    "ethnicity",
+    ethSlug,
     label,
-    filterModelsByCountry,
+    filterModelsByEthnicity,
   );
   return taxonomySeoToMetadata(seo);
 }
 
-export default async function CountryPage({ params }: PageProps) {
+export default async function EthnicityFacetPage({ params }: PageProps) {
   const { slug } = await params;
-  const countrySlug = slugify(slug);
-  const label = countryLabelFromSlug(countrySlug);
+  const ethSlug = slugify(slug);
+  const label = labelFromSlug(ethSlug);
 
   const { seo, models, result } = await buildFacetTaxonomyContext(
-    "country",
-    countrySlug,
+    "ethnicity",
+    ethSlug,
     label,
-    filterModelsByCountry,
+    filterModelsByEthnicity,
   );
 
   return (
@@ -46,7 +40,7 @@ export default async function CountryPage({ params }: PageProps) {
       seo={seo}
       models={models.length ? models : result.models}
       statusMessage={result.message}
-      emptyMessage="No live performers from this country right now."
+      emptyMessage="No live performers for this ethnicity right now."
     />
   );
 }

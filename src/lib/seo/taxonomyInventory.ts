@@ -1,14 +1,11 @@
 import { slugify } from "@/lib/seo/slug";
 import { countryLabel } from "@/lib/country";
 import {
-  filterModelsByCategory,
-  filterModelsByCountry,
   filterModelsByLanguage,
   filterModelsByTag,
 } from "@/lib/seo/filters";
 import {
   CATEGORY_DISPLAY,
-  SITE_CATEGORIES,
   type SiteCategory,
 } from "@/lib/seo/config";
 import {
@@ -18,6 +15,7 @@ import {
   isTagTaxonomyIndexable,
 } from "@/lib/seo/strategy";
 import { normalizeModelTags } from "@/lib/seo/tags";
+import { buildLiveMenuInventory } from "@/lib/taxonomy/liveMenuInventory";
 import type { CamModel } from "@/lib/models/types";
 
 export type TaxonomyIndexabilityContext = {
@@ -25,17 +23,20 @@ export type TaxonomyIndexabilityContext = {
   indexableTags: Set<string>;
   indexableCountries: Set<string>;
   indexableLanguages: Set<string>;
+  indexableAgeBands: Set<string>;
+  indexableEthnicities: Set<string>;
+  indexableHairs: Set<string>;
 };
 
 export function buildTaxonomyIndexabilityContext(
   models: CamModel[],
 ): TaxonomyIndexabilityContext {
+  const live = models.filter((m) => m.isLive);
+  const menuInv = buildLiveMenuInventory(live, live.length > 0);
+
   const indexableCategories = new Set<string>();
-  for (const cat of SITE_CATEGORIES) {
-    const count = filterModelsByCategory(models, cat).length;
-    if (isFacetTaxonomyIndexable(count)) {
-      indexableCategories.add(cat);
-    }
+  for (const item of menuInv.niches) {
+    indexableCategories.add(item.slug);
   }
 
   const indexableCountries = new Set<string>();
@@ -45,11 +46,8 @@ export function buildTaxonomyIndexabilityContext(
     if (!label) continue;
     countrySlugs.add(slugify(label));
   }
-  for (const slug of countrySlugs) {
-    const eligible = filterModelsByCountry(models, slug).length;
-    if (isFacetTaxonomyIndexable(eligible)) {
-      indexableCountries.add(slug);
-    }
+  for (const item of menuInv.countries) {
+    indexableCountries.add(item.slug);
   }
 
   const indexableLanguages = new Set<string>();
@@ -88,6 +86,9 @@ export function buildTaxonomyIndexabilityContext(
     indexableTags,
     indexableCountries,
     indexableLanguages,
+    indexableAgeBands: menuInv.indexableAge,
+    indexableEthnicities: menuInv.indexableEthnicity,
+    indexableHairs: menuInv.indexableHair,
   };
 }
 

@@ -2,8 +2,11 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/site";
 import { SITE_CATEGORIES } from "@/lib/seo/config";
 import {
+  canonicalAgeUrl,
   canonicalCategoryUrl,
   canonicalCountryUrl,
+  canonicalEthnicityUrl,
+  canonicalHairUrl,
   canonicalLanguageUrl,
   canonicalModelUrl,
   canonicalTagUrl,
@@ -138,6 +141,33 @@ export function taxonomyToSitemapEntries(
   for (const slug of ctx.indexableLanguages) {
     entries.push({
       url: canonicalLanguageUrl(slug),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.55,
+    });
+  }
+
+  for (const slug of ctx.indexableAgeBands) {
+    entries.push({
+      url: canonicalAgeUrl(slug),
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.65,
+    });
+  }
+
+  for (const slug of ctx.indexableEthnicities) {
+    entries.push({
+      url: canonicalEthnicityUrl(slug),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.6,
+    });
+  }
+
+  for (const slug of ctx.indexableHairs) {
+    entries.push({
+      url: canonicalHairUrl(slug),
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.55,

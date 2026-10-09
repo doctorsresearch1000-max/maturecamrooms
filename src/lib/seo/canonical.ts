@@ -1,7 +1,10 @@
 import { absoluteUrl } from "@/lib/site";
 import {
+  agePath,
   categoryPath,
   countryPath,
+  ethnicityPath,
+  hairPath,
   languagePath,
   modelProfilePath,
   platformPath,
@@ -30,4 +33,16 @@ export function canonicalLanguageUrl(languageSlug: string): string {
 
 export function canonicalPlatformUrl(platform: string): string {
   return absoluteUrl(platformPath(platform));
+}
+
+export function canonicalAgeUrl(bandSlug: string): string {
+  return absoluteUrl(agePath(bandSlug));
+}
+
+export function canonicalEthnicityUrl(ethnicitySlug: string): string {
+  return absoluteUrl(ethnicityPath(ethnicitySlug));
+}
+
+export function canonicalHairUrl(hairSlug: string): string {
+  return absoluteUrl(hairPath(hairSlug));
 }

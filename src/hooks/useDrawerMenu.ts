@@ -1,27 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { TaxonomyCategoryItem } from "@/hooks/useTaxonomyCategories";
+import type { MenuFacetItem } from "@/lib/taxonomy/liveMenuInventory";
+
+export type TaxonomyCategoryItem = {
+  slug: string;
+  label: string;
+  href: string;
+  count?: number;
+  icon?: string;
+};
 
 export type DrawerCountryItem = {
   slug: string;
   label: string;
   href: string;
   count: number;
+  icon?: string;
 };
 
 type DrawerMenuState = {
-  liveCount: number;
+  feedOk: boolean;
+  liveCount: number | undefined;
   categories: TaxonomyCategoryItem[];
+  ageBands: TaxonomyCategoryItem[];
+  ethnicities: TaxonomyCategoryItem[];
+  hairs: TaxonomyCategoryItem[];
   countries: DrawerCountryItem[];
+  headerChips: TaxonomyCategoryItem[];
   loading: boolean;
 };
 
 export function useDrawerMenu(enabled = true) {
   const [state, setState] = useState<DrawerMenuState>({
-    liveCount: 0,
+    feedOk: false,
+    liveCount: undefined,
     categories: [],
+    ageBands: [],
+    ethnicities: [],
+    hairs: [],
     countries: [],
+    headerChips: [],
     loading: enabled,
   });
 
@@ -32,15 +51,29 @@ export function useDrawerMenu(enabled = true) {
       .then((r) => r.json())
       .then(
         (data: {
+          feedOk?: boolean;
           liveCount?: number;
           categories?: TaxonomyCategoryItem[];
+          ageBands?: MenuFacetItem[];
+          ethnicities?: MenuFacetItem[];
+          hairs?: MenuFacetItem[];
           countries?: DrawerCountryItem[];
+          headerChips?: MenuFacetItem[];
         }) => {
           if (cancelled) return;
+          const feedOk = Boolean(data.feedOk);
           setState({
-            liveCount: data.liveCount ?? 0,
+            feedOk,
+            liveCount:
+              feedOk && typeof data.liveCount === "number"
+                ? data.liveCount
+                : undefined,
             categories: data.categories ?? [],
+            ageBands: data.ageBands ?? [],
+            ethnicities: data.ethnicities ?? [],
+            hairs: data.hairs ?? [],
             countries: data.countries ?? [],
+            headerChips: data.headerChips ?? [],
             loading: false,
           });
         },
@@ -48,9 +81,14 @@ export function useDrawerMenu(enabled = true) {
       .catch(() => {
         if (!cancelled) {
           setState({
-            liveCount: 0,
+            feedOk: false,
+            liveCount: undefined,
             categories: [],
+            ageBands: [],
+            ethnicities: [],
+            hairs: [],
             countries: [],
+            headerChips: [],
             loading: false,
           });
         }

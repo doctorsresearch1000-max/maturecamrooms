@@ -8,6 +8,12 @@ const COUNTRY_NAMES: Record<string, string> = {
   AU: "Australia",
   BR: "Brazil",
   CO: "Colombia",
+  RO: "Romania",
+  BG: "Bulgaria",
+  UA: "Ukraine",
+  IT: "Italy",
+  PL: "Poland",
+  MX: "Mexico",
 };
 
 export function countryCodeToFlag(code?: string): string {

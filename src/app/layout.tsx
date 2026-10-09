@@ -58,6 +58,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
+      <head>
+        <meta name="rating" content="adult" />
+        <meta
+          name="RATING"
+          content="RTA-5042-1996-1400-1577-RTA"
+        />
+      </head>
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
         <ShellProviders>{children}</ShellProviders>
       </body>

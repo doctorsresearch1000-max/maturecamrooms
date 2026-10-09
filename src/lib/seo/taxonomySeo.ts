@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import {
+  canonicalAgeUrl,
   canonicalCategoryUrl,
   canonicalCountryUrl,
+  canonicalEthnicityUrl,
+  canonicalHairUrl,
   canonicalLanguageUrl,
   canonicalTagUrl,
 } from "@/lib/seo/canonical";
 import {
+  agePath,
   categoryPath,
   countryPath,
+  ethnicityPath,
+  hairPath,
   languagePath,
   tagPath,
 } from "@/lib/seo/slug";
@@ -23,7 +29,20 @@ import { buildTaxonomyWebPageSchema } from "@/lib/seo/schemaGenerator";
 import { buildBreadcrumbListSchema } from "@/lib/seo/schemaGenerator";
 import { generateTaxonomyTitle } from "@/lib/seo/titleGenerator";
 
-export type TaxonomyKind = "category" | "tag" | "country" | "language" | "platform";
+export type TaxonomyKind =
+  | "category"
+  | "tag"
+  | "country"
+  | "language"
+  | "platform"
+  | "age"
+  | "ethnicity"
+  | "hair";
+
+export type BuildTaxonomySeoOptions = {
+  /** When set, page is non-indexable and points canonical here (overlap / below threshold). */
+  canonicalUrlOverride?: string;
+};
 
 export type TaxonomySEO = {
   kind: TaxonomyKind;
@@ -50,6 +69,12 @@ function resolveCanonical(kind: TaxonomyKind, slug: string): string {
       return canonicalCountryUrl(slug);
     case "language":
       return canonicalLanguageUrl(slug);
+    case "age":
+      return canonicalAgeUrl(slug);
+    case "ethnicity":
+      return canonicalEthnicityUrl(slug);
+    case "hair":
+      return canonicalHairUrl(slug);
     default:
       return canonicalCategoryUrl(slug);
   }
@@ -65,6 +90,12 @@ function resolveTaxonomyPath(kind: TaxonomyKind, slug: string): string {
       return countryPath(slug);
     case "language":
       return languagePath(slug);
+    case "age":
+      return agePath(slug);
+    case "ethnicity":
+      return ethnicityPath(slug);
+    case "hair":
+      return hairPath(slug);
     default:
       return categoryPath(slug);
   }
@@ -75,6 +106,7 @@ export function buildTaxonomySeo(
   slug: string,
   label: string,
   modelCount: number,
+  options?: BuildTaxonomySeoOptions,
 ): TaxonomySEO {
   let canonicalUrl = resolveCanonical(kind, slug);
   let indexable =
@@ -86,9 +118,15 @@ export function buildTaxonomySeo(
     canonicalUrl = canonicalCategoryUrl(slug);
     indexable = false;
   }
+
+  if (options?.canonicalUrlOverride) {
+    canonicalUrl = options.canonicalUrlOverride;
+    indexable = false;
+  }
+
   const title = generateTaxonomyTitle(label);
   const metaDescription = generateTaxonomyMetaDescription(label, modelCount);
-  const h1 = generateTaxonomyH1(label);
+  const h1 = generateTaxonomyH1(label, modelCount);
   const intro = generateTaxonomyIntro(label);
   const breadcrumbs = generateTaxonomyBreadcrumbs(
     label,
