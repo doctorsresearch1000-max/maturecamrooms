@@ -26,6 +26,10 @@ type DrawerMenuState = {
   ageBands: TaxonomyCategoryItem[];
   ethnicities: TaxonomyCategoryItem[];
   hairs: TaxonomyCategoryItem[];
+  busts: TaxonomyCategoryItem[];
+  figures: TaxonomyCategoryItem[];
+  languages: TaxonomyCategoryItem[];
+  segments: TaxonomyCategoryItem[];
   countries: DrawerCountryItem[];
   headerChips: TaxonomyCategoryItem[];
   loading: boolean;
@@ -39,6 +43,10 @@ export function useDrawerMenu(enabled = true) {
     ageBands: [],
     ethnicities: [],
     hairs: [],
+    busts: [],
+    figures: [],
+    languages: [],
+    segments: [],
     countries: [],
     headerChips: [],
     loading: enabled,
@@ -57,6 +65,10 @@ export function useDrawerMenu(enabled = true) {
           ageBands?: MenuFacetItem[];
           ethnicities?: MenuFacetItem[];
           hairs?: MenuFacetItem[];
+          busts?: MenuFacetItem[];
+          figures?: MenuFacetItem[];
+          languages?: MenuFacetItem[];
+          segments?: MenuFacetItem[];
           countries?: DrawerCountryItem[];
           headerChips?: MenuFacetItem[];
         }) => {
@@ -72,6 +84,10 @@ export function useDrawerMenu(enabled = true) {
             ageBands: data.ageBands ?? [],
             ethnicities: data.ethnicities ?? [],
             hairs: data.hairs ?? [],
+            busts: data.busts ?? [],
+            figures: data.figures ?? [],
+            languages: data.languages ?? [],
+            segments: data.segments ?? [],
             countries: data.countries ?? [],
             headerChips: data.headerChips ?? [],
             loading: false,
@@ -87,6 +103,10 @@ export function useDrawerMenu(enabled = true) {
             ageBands: [],
             ethnicities: [],
             hairs: [],
+            busts: [],
+            figures: [],
+            languages: [],
+            segments: [],
             countries: [],
             headerChips: [],
             loading: false,

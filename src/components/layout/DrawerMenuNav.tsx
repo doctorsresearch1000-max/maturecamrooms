@@ -117,6 +117,10 @@ export function DrawerMenuNav({
     ageBands,
     ethnicities,
     hairs,
+    busts,
+    figures,
+    languages,
+    segments,
     countries,
     loading,
   } = useDrawerMenu(true);
@@ -186,8 +190,26 @@ export function DrawerMenuNav({
         ))}
       </ul>
 
+      {segments.length > 0 ? (
+        <Section title="Segments" defaultOpen>
+          <ul className="space-y-0.5" role="list">
+            {segments.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
       {categories.length > 0 ? (
-        <Section title="Niche" defaultOpen>
+        <Section title="Popular" defaultOpen>
           <ul className="space-y-0.5" role="list">
             {categories.map((cat) => (
               <li key={cat.slug}>
@@ -240,10 +262,64 @@ export function DrawerMenuNav({
         </Section>
       ) : null}
 
+      {busts.length > 0 ? (
+        <Section title="Bust">
+          <ul className="space-y-0.5" role="list">
+            {busts.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {figures.length > 0 ? (
+        <Section title="Figure">
+          <ul className="space-y-0.5" role="list">
+            {figures.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
       {hairs.length > 0 ? (
         <Section title="Hair">
           <ul className="space-y-0.5" role="list">
             {hairs.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {languages.length > 0 ? (
+        <Section title="Languages">
+          <ul className="space-y-0.5" role="list">
+            {languages.slice(0, 12).map((item) => (
               <li key={item.slug}>
                 <NavRow
                   href={item.href}

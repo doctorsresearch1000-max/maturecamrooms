@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import {
   canonicalAgeUrl,
+  canonicalBustUrl,
   canonicalCategoryUrl,
+  canonicalComboUrl,
   canonicalCountryUrl,
   canonicalEthnicityUrl,
+  canonicalFigureUrl,
   canonicalHairUrl,
   canonicalLanguageUrl,
   canonicalTagUrl,
 } from "@/lib/seo/canonical";
 import {
   agePath,
+  bustPath,
   categoryPath,
+  comboPath,
   countryPath,
   ethnicityPath,
+  figurePath,
   hairPath,
   languagePath,
   tagPath,
@@ -37,11 +43,16 @@ export type TaxonomyKind =
   | "platform"
   | "age"
   | "ethnicity"
-  | "hair";
+  | "hair"
+  | "bust"
+  | "figure"
+  | "combo";
 
 export type BuildTaxonomySeoOptions = {
   /** When set, page is non-indexable and points canonical here (overlap / below threshold). */
   canonicalUrlOverride?: string;
+  /** Catalog-backed facet with enough inventory — keep indexable unless canonical override. */
+  forceIndexable?: boolean;
 };
 
 export type TaxonomySEO = {
@@ -75,6 +86,12 @@ function resolveCanonical(kind: TaxonomyKind, slug: string): string {
       return canonicalEthnicityUrl(slug);
     case "hair":
       return canonicalHairUrl(slug);
+    case "bust":
+      return canonicalBustUrl(slug);
+    case "figure":
+      return canonicalFigureUrl(slug);
+    case "combo":
+      return canonicalComboUrl(slug);
     default:
       return canonicalCategoryUrl(slug);
   }
@@ -96,6 +113,12 @@ function resolveTaxonomyPath(kind: TaxonomyKind, slug: string): string {
       return ethnicityPath(slug);
     case "hair":
       return hairPath(slug);
+    case "bust":
+      return bustPath(slug);
+    case "figure":
+      return figurePath(slug);
+    case "combo":
+      return comboPath(slug);
     default:
       return categoryPath(slug);
   }
@@ -117,6 +140,10 @@ export function buildTaxonomySeo(
   if (kind === "tag" && isCategoryOwnedSlug(slug)) {
     canonicalUrl = canonicalCategoryUrl(slug);
     indexable = false;
+  }
+
+  if (options?.forceIndexable && !options?.canonicalUrlOverride) {
+    indexable = true;
   }
 
   if (options?.canonicalUrlOverride) {

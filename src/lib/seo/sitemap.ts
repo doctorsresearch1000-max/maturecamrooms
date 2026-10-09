@@ -3,26 +3,24 @@ import { absoluteUrl } from "@/lib/site";
 import { SITE_CATEGORIES } from "@/lib/seo/config";
 import {
   canonicalAgeUrl,
+  canonicalBustUrl,
   canonicalCategoryUrl,
+  canonicalComboUrl,
   canonicalCountryUrl,
   canonicalEthnicityUrl,
+  canonicalFigureUrl,
   canonicalHairUrl,
   canonicalLanguageUrl,
   canonicalModelUrl,
   canonicalTagUrl,
 } from "@/lib/seo/canonical";
 import { isCrakConfigured } from "@/lib/crak/config";
+import { getFullCatalog } from "@/lib/crak/fullCatalog";
+import type { SitemapCatalogResult } from "@/lib/crak/sitemapCatalog";
 import {
-  fetchSitemapCatalogCandidates,
-  type SitemapCatalogResult,
-} from "@/lib/crak/sitemapCatalog";
-import {
-  resolveSitemapModels,
-  type SitemapResolveResult,
-} from "@/lib/crak/sitemapResolve";
-import { buildTaxonomyIndexabilityContext } from "@/lib/seo/taxonomyInventory";
-import { fetchLiveMenuPool } from "@/lib/taxonomy/fetchLivePool";
-import { buildLiveMenuInventory } from "@/lib/taxonomy/liveMenuInventory";
+  buildCatalogSitemapBundle,
+  type CatalogSitemapBundle,
+} from "@/lib/taxonomy/catalogInventory";
 import type { CamModel } from "@/lib/models/types";
 
 export class SitemapGenerationError extends Error {
@@ -34,9 +32,8 @@ export class SitemapGenerationError extends Error {
 
 export type SitemapPipelineResult = {
   catalog: SitemapCatalogResult;
-  resolve: SitemapResolveResult;
   indexableModels: CamModel[];
-  taxonomyContext: ReturnType<typeof buildTaxonomyIndexabilityContext>;
+  bundle: CatalogSitemapBundle;
 };
 
 export async function runSitemapPipeline(): Promise<SitemapPipelineResult> {
@@ -46,31 +43,28 @@ export async function runSitemapPipeline(): Promise<SitemapPipelineResult> {
     );
   }
 
-  const catalog = await fetchSitemapCatalogCandidates();
-  if (catalog.models.length === 0) {
+  const snapshot = await getFullCatalog();
+  if (snapshot.models.length === 0) {
     throw new SitemapGenerationError(
       "Sitemap generation failed: Crak returned no performer candidates",
     );
   }
 
-  const resolve = await resolveSitemapModels(catalog.models);
-  const taxonomyContext = buildTaxonomyIndexabilityContext(catalog.models);
-  const { pool, feedOk } = await fetchLiveMenuPool();
-  const liveMenu = buildLiveMenuInventory(pool, feedOk);
-  const taxonomyContextWithLiveFacets = {
-    ...taxonomyContext,
-    indexableCategories: new Set(liveMenu.niches.map((n) => n.slug)),
-    indexableAgeBands: liveMenu.indexableAge,
-    indexableEthnicities: liveMenu.indexableEthnicity,
-    indexableHairs: liveMenu.indexableHair,
-    indexableCountries: new Set(liveMenu.countries.map((c) => c.slug)),
+  const catalog: SitemapCatalogResult = {
+    models: snapshot.models,
+    pagesFetched: snapshot.pagesFetched,
+    rawPerformerRows: snapshot.rawPerformerRows,
   };
+
+  const bundle = buildCatalogSitemapBundle(snapshot.models);
+  const indexableModels = snapshot.models.filter(
+    (m) => m.username && m.thumbnailUrl,
+  );
 
   return {
     catalog,
-    resolve,
-    indexableModels: resolve.models,
-    taxonomyContext: taxonomyContextWithLiveFacets,
+    indexableModels,
+    bundle,
   };
 }
 
@@ -117,8 +111,9 @@ export function modelsToSitemapEntries(
 }
 
 export function taxonomyToSitemapEntries(
-  ctx: ReturnType<typeof buildTaxonomyIndexabilityContext>,
+  bundle: CatalogSitemapBundle,
 ): MetadataRoute.Sitemap {
+  const ctx = bundle.taxonomyContext;
   const entries: MetadataRoute.Sitemap = [];
   const now = new Date();
 
@@ -186,10 +181,37 @@ export function taxonomyToSitemapEntries(
     });
   }
 
+  for (const slug of bundle.indexableBusts) {
+    entries.push({
+      url: canonicalBustUrl(slug),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.5,
+    });
+  }
+
+  for (const slug of bundle.indexableFigures) {
+    entries.push({
+      url: canonicalFigureUrl(slug),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.5,
+    });
+  }
+
+  for (const combo of bundle.combos) {
+    entries.push({
+      url: canonicalComboUrl(combo.slug),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.45,
+    });
+  }
+
   return entries;
 }
 
 export async function fetchTaxonomySitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const pipeline = await runSitemapPipeline();
-  return taxonomyToSitemapEntries(pipeline.taxonomyContext);
+  return taxonomyToSitemapEntries(pipeline.bundle);
 }

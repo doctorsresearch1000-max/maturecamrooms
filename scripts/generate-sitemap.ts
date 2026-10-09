@@ -1,6 +1,5 @@
 /**
- * Build-time sitemap generation (same validated pipeline as local audit).
- * Writes public/sitemap.xml — served as a static asset (no CRAK calls per request).
+ * Build-time sitemap generation — catalog-backed, sharded urlsets + index.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -45,27 +44,11 @@ async function assertCrakBuildEnv(): Promise<void> {
     ]),
   );
 
-  const cfPagesGitBuild = Boolean(
-    process.env.CF_PAGES || process.env.CF_PAGES_BRANCH,
-  );
-  const wranglerPublicOnly =
-    Boolean(process.env.NEXT_PUBLIC_SITE_NAME) &&
-    !presence.CRAK_API_KEY?.present;
-
   console.error(
     JSON.stringify(
       {
         error:
           "CRAK credentials missing during build-time sitemap generation",
-        required:
-          "CRAK_API_KEY + CRAK_TOKEN (or CRAKREVENUE_API_KEY + CRAKREVENUE_API_TOKEN / CRACKREVENUE_TOKEN)",
-        cloudflare:
-          cfPagesGitBuild
-            ? "Cloudflare Pages Git build detected (CF_PAGES*). GitHub Actions secrets are NOT injected here. Add encrypted CRAK_API_KEY + CRAK_TOKEN under Workers & Pages → maturecamrooms → Settings → Environment variables for BOTH Production and Preview (preview branch builds need Preview scope). If the build log only lists NEXT_PUBLIC_* from wrangler.toml, CRAK is not scoped to this environment. Recommended: disable automatic Git builds and use .github/workflows/deploy.yml only (see docs/DEPLOY-DEFINITIVO.md)."
-            : "Inject CRAK_API_KEY + CRAK_TOKEN at build time: Cloudflare Pages → Environment variables (Production and Preview), or GitHub Actions repository secrets when using .github/workflows/deploy.yml. Functions-only bindings are not available during npm run pages:build.",
-        wranglerPublicVarsOnlyHint: wranglerPublicOnly,
-        cfPagesGitBuild,
-        documentation: "docs/DEPLOY-DEFINITIVO.md",
         env: envSummary,
       },
       null,
@@ -92,6 +75,21 @@ function urlEntry(url: string, lastModified?: Date): string {
   return `  <url>\n    <loc>${loc}</loc>${lastmod}\n  </url>`;
 }
 
+function writeUrlset(path: string, urls: { url: string; lastModified?: Date }[]) {
+  const body = urls
+    .map((e) =>
+      urlEntry(
+        e.url,
+        e.lastModified instanceof Date ? e.lastModified : undefined,
+      ),
+    )
+    .join("\n");
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+  writeFileSync(path, xml, "utf8");
+}
+
+const MAX_URLS_PER_FILE = 5000;
+
 async function main() {
   await assertCrakBuildEnv();
 
@@ -101,41 +99,68 @@ async function main() {
     modelsToSitemapEntries,
     taxonomyToSitemapEntries,
   } = await import("../src/lib/seo/sitemap");
+  const { absoluteUrl } = await import("../src/lib/site");
 
   const t0 = performance.now();
   const pipeline = await runSitemapPipeline();
-  const entries = [
+  const staticAndTaxonomy = [
     ...staticSitemapEntries(),
-    ...taxonomyToSitemapEntries(pipeline.taxonomyContext),
-    ...modelsToSitemapEntries(pipeline.indexableModels),
+    ...taxonomyToSitemapEntries(pipeline.bundle),
   ];
-
-  const body = entries
-    .map((e) =>
-      urlEntry(
-        e.url,
-        e.lastModified instanceof Date ? e.lastModified : undefined,
-      ),
-    )
-    .join("\n");
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+  const modelEntries = modelsToSitemapEntries(pipeline.indexableModels);
 
   const outDir = resolve(process.cwd(), "public");
   mkdirSync(outDir, { recursive: true });
-  const outPath = resolve(outDir, "sitemap.xml");
-  writeFileSync(outPath, xml, "utf8");
 
-  const modelCount = entries.filter((e) => e.url.includes("/model/")).length;
+  const shardPaths: string[] = [];
+  const toUrlRows = (
+    entries: { url: string; lastModified?: Date | string }[],
+  ) =>
+    entries.map((e) => ({
+      url: e.url,
+      lastModified:
+        e.lastModified instanceof Date
+          ? e.lastModified
+          : e.lastModified
+            ? new Date(e.lastModified)
+            : undefined,
+    }));
+
+  writeUrlset(
+    resolve(outDir, "sitemap-static.xml"),
+    toUrlRows(staticAndTaxonomy),
+  );
+  shardPaths.push(absoluteUrl("/sitemap-static.xml"));
+
+  for (let i = 0; i < modelEntries.length; i += MAX_URLS_PER_FILE) {
+    const chunk = modelEntries.slice(i, i + MAX_URLS_PER_FILE);
+    const index = Math.floor(i / MAX_URLS_PER_FILE) + 1;
+    const fileName = `sitemap-models-${index}.xml`;
+    writeUrlset(resolve(outDir, fileName), toUrlRows(chunk));
+    shardPaths.push(absoluteUrl(`/${fileName}`));
+  }
+
+  const indexBody = shardPaths
+    .map(
+      (loc) =>
+        `  <sitemap>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${new Date().toISOString()}</lastmod>\n  </sitemap>`,
+    )
+    .join("\n");
+  const indexXml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${indexBody}\n</sitemapindex>\n`;
+  writeFileSync(resolve(outDir, "sitemap.xml"), indexXml, "utf8");
+
   const elapsedMs = Math.round(performance.now() - t0);
+  const taxonomyCount = staticAndTaxonomy.length - 5;
 
   console.log(
     JSON.stringify(
       {
-        written: outPath,
-        totalUrls: entries.length,
-        modelUrls: modelCount,
-        resolvedModels: pipeline.resolve.stats.resolved,
+        written: resolve(outDir, "sitemap.xml"),
+        shards: shardPaths.length,
+        totalUrls: staticAndTaxonomy.length + modelEntries.length,
+        modelUrls: modelEntries.length,
+        taxonomyUrls: taxonomyCount,
+        catalogModels: pipeline.catalog.models.length,
         generationMs: elapsedMs,
       },
       null,

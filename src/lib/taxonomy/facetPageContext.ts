@@ -1,9 +1,9 @@
-import { getFeaturedModels } from "@/lib/models/getModels";
+import { getFullCatalog, sortCatalogBrowse } from "@/lib/crak/fullCatalog";
 import {
   facetRedundantWithMature,
   matureCategoryCanonicalUrl,
 } from "@/lib/taxonomy/facetCanonical";
-import { fetchLiveMenuPool } from "@/lib/taxonomy/fetchLivePool";
+import { FACET_SITEMAP_MIN_COUNT } from "@/lib/taxonomy/settings";
 import {
   buildTaxonomySeo,
   type TaxonomyKind,
@@ -16,23 +16,36 @@ export async function buildFacetTaxonomyContext(
   label: string,
   filter: (models: CamModel[], slug: string) => CamModel[],
 ) {
-  const result = await getFeaturedModels(96, { live: true });
-  const models = filter(result.models, slug);
-  const { pool, feedOk } = await fetchLiveMenuPool();
-  const livePool = pool.filter((m) => m.isLive);
+  const snapshot = await getFullCatalog();
+  const catalog = snapshot.models;
+  const filtered = filter(catalog, slug);
+  const models = sortCatalogBrowse(filtered).slice(0, 96);
+  const catalogCount = filtered.length;
 
   let canonicalUrlOverride: string | undefined;
   if (
-    feedOk &&
-    models.length > 0 &&
-    facetRedundantWithMature(livePool, models.map((m) => m.id))
+    catalog.length > 0 &&
+    catalogCount > 0 &&
+    facetRedundantWithMature(catalog, filtered.map((m) => m.id))
   ) {
     canonicalUrlOverride = matureCategoryCanonicalUrl();
   }
 
-  const seo = buildTaxonomySeo(kind, slug, label, models.length, {
+  const seo = buildTaxonomySeo(kind, slug, label, catalogCount, {
     canonicalUrlOverride,
+    forceIndexable: catalogCount >= FACET_SITEMAP_MIN_COUNT,
   });
 
-  return { seo, models, result };
+  return {
+    seo,
+    models,
+    result: {
+      models,
+      source: catalog.length ? "crak" : "unconfigured",
+      message:
+        catalog.length === 0
+          ? "Catalog is temporarily unavailable."
+          : undefined,
+    },
+  };
 }

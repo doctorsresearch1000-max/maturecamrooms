@@ -44,7 +44,7 @@ async function main() {
   const t0 = performance.now();
   const pipeline = await runSitemapPipeline();
   const staticEntries = staticSitemapEntries();
-  const taxonomyEntries = taxonomyToSitemapEntries(pipeline.taxonomyContext);
+  const taxonomyEntries = taxonomyToSitemapEntries(pipeline.bundle);
   const modelEntries = modelsToSitemapEntries(pipeline.indexableModels);
   const allEntries = [...staticEntries, ...taxonomyEntries, ...modelEntries];
   const elapsedMs = Math.round(performance.now() - t0);
@@ -53,7 +53,6 @@ async function main() {
   const urlSet = new Set(urls);
   const duplicateCount = urls.length - urlSet.size;
 
-  const modelUrls = modelEntries.map((e) => e.url);
   let canonicalMismatches = 0;
   for (const model of pipeline.indexableModels) {
     const expected = canonicalModelUrl(model.username);
@@ -61,35 +60,19 @@ async function main() {
     if (expected !== canonicalModelUrl(slug)) canonicalMismatches += 1;
   }
 
-  const stats = pipeline.resolve.stats;
   const catalog = pipeline.catalog;
 
   const report = {
-    A_candidates_raw_rows_from_crak: catalog.rawPerformerRows,
-    B_candidates_after_dedup: catalog.models.length,
-    C_after_indexability_filter: stats.afterIndexability,
-    D_successfully_resolved: stats.resolved,
-    E_rejected: {
-      not_indexable: stats.rejectedNotIndexable,
-      unresolved_profile: stats.rejectedUnresolved,
-      slug_mismatch: stats.rejectedSlugMismatch,
-    },
-    F_final_model_urls_in_sitemap: modelEntries.length,
-    G_canonical_slug_mismatches_in_pipeline: canonicalMismatches,
-    H_duplicate_urls_in_sitemap: duplicateCount,
-    I_total_sitemap_urls: allEntries.length,
-    J_generation_time_ms: elapsedMs,
-    catalog_pages_fetched: catalog.pagesFetched,
+    catalog_unique_models: catalog.models.length,
+    model_urls_in_sitemap: modelEntries.length,
     taxonomy_urls: taxonomyEntries.length,
+    combo_urls: pipeline.bundle.combos.length,
     static_urls: staticEntries.length,
-    closer_to_expected_605:
-      stats.resolved >= 400
-        ? "yes — substantially expanded vs prior ~43 resolved"
-        : stats.resolved > 43
-          ? "partial — more than legacy sitemap but below ~605 ceiling"
-          : "no — similar to legacy scale",
-    note_g_404_noindex:
-      "404/noindex spot-check requires HTTP against deployed pages; this run validates pipeline + URL uniqueness/canonical construction only.",
+    total_urls: allEntries.length,
+    duplicate_urls: duplicateCount,
+    canonical_slug_mismatches: canonicalMismatches,
+    catalog_pages_fetched: catalog.pagesFetched,
+    generation_time_ms: elapsedMs,
   };
 
   console.log(JSON.stringify(report, null, 2));

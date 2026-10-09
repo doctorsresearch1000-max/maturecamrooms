@@ -44,4 +44,5 @@ export type ModelsResult = {
   effectiveFilter?: string;
   page?: number;
   hasMore?: boolean;
+  total?: number;
 };

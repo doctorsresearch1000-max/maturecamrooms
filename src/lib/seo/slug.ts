@@ -44,3 +44,15 @@ export function ethnicityPath(ethnicitySlug: string): string {
 export function hairPath(hairSlug: string): string {
   return `/hair/${slugify(hairSlug)}`;
 }
+
+export function bustPath(bustSlug: string): string {
+  return `/bust/${slugify(bustSlug)}`;
+}
+
+export function figurePath(figureSlug: string): string {
+  return `/figure/${slugify(figureSlug)}`;
+}
+
+export function comboPath(comboSlug: string): string {
+  return `/combo/${slugify(comboSlug)}`;
+}
