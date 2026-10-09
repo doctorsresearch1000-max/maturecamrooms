@@ -33,7 +33,6 @@ import {
   FACET_MENU_MIN_COUNT,
   FACET_SITEMAP_MIN_COUNT,
 } from "@/lib/taxonomy/constants";
-import { facetRedundantWithMature } from "@/lib/taxonomy/facetCanonical";
 import type { TaxonomyIndexabilityContext } from "@/lib/seo/taxonomyInventory";
 import { buildNicheCanonicalMap, nicheCanonicalHref } from "@/lib/taxonomy/liveMenuInventory";
 import type { MenuFacetItem } from "@/lib/taxonomy/liveMenuInventory";
@@ -224,7 +223,6 @@ export function buildCatalogMenuInventory(
     for (const def of AGE_FACET_DEFS) {
       const matched = filterModelsByAgeBand(pool, def.slug);
       if (matched.length < menuMin) continue;
-      if (facetRedundantWithMature(pool, matched.map((m) => m.id))) continue;
       ageBands.push({
         slug: def.slug,
         label: def.label,
@@ -247,8 +245,6 @@ export function buildCatalogMenuInventory(
     }
     for (const [slug, { label, count }] of ethnicityCounts) {
       if (count < menuMin) continue;
-      const matched = filterModelsByEthnicity(pool, slug);
-      if (facetRedundantWithMature(pool, matched.map((m) => m.id))) continue;
       ethnicities.push({
         slug,
         label,
@@ -272,8 +268,6 @@ export function buildCatalogMenuInventory(
     }
     for (const [slug, { label, count }] of hairCounts) {
       if (count < menuMin) continue;
-      const matched = filterModelsByHair(pool, slug);
-      if (facetRedundantWithMature(pool, matched.map((m) => m.id))) continue;
       hairs.push({
         slug,
         label,
@@ -344,8 +338,6 @@ export function buildCatalogMenuInventory(
     }
     for (const [slug, { label, count }] of counts) {
       if (count < menuMin) continue;
-      const matched = filterModelsByCountrySlug(pool, slug);
-      if (facetRedundantWithMature(pool, matched.map((m) => m.id))) continue;
       countries.push({
         slug,
         label,
