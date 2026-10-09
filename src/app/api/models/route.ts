@@ -15,7 +15,7 @@ async function fetchDiscoveryPage(
 ): Promise<ModelsResult & { effectiveFilter?: string; broadened?: boolean }> {
   const chain = discoveryFilterFallbackChain(filter);
   const primaryFilter = chain[0] ?? "live";
-  let result = await getModelsPage(
+  const result = await getModelsPage(
     page,
     limit,
     discoveryFilterToQuery(primaryFilter),
