@@ -53,7 +53,7 @@ async function assertCrakBuildEnv(): Promise<void> {
         required:
           "CRAK_API_KEY + CRAK_TOKEN (or CRAKREVENUE_API_KEY + CRAKREVENUE_API_TOKEN / CRACKREVENUE_TOKEN)",
         cloudflare:
-          "Add the same names under Workers & Pages → maturecamrooms → Settings → Environment variables (Production). Functions-only secrets are not available during npm run pages:build.",
+          "Inject CRAK_API_KEY + CRAK_TOKEN at build time: Cloudflare Pages → Environment variables (Production and Preview if preview builds run), or GitHub Actions repository secrets when using .github/workflows/deploy.yml. Functions-only bindings are not available during npm run pages:build.",
         documentation: "docs/cloudflare-pages-crak-build.md",
         env: envSummary,
       },

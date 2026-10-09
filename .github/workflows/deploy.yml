@@ -1,10 +1,19 @@
 name: Deploy to Cloudflare Pages
 
+# Authoritative build + deploy path. Cloudflare Pages Git builds do not receive
+# GitHub secrets; dashboard CRAK vars must be scoped to Preview too if CF Git
+# preview builds stay enabled. See docs/cloudflare-pages-crak-build.md.
+
 on:
   push:
     branches:
       - main
+      - "cursor/**"
   workflow_dispatch:
+
+concurrency:
+  group: pages-deploy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -13,29 +22,62 @@ jobs:
       contents: read
       deployments: write
 
+    env:
+      NEXT_PUBLIC_SITE_NAME: MatureCamRooms
+      NEXT_PUBLIC_SITE_URL: https://maturecamrooms.com
+      CRAK_API_KEY: ${{ secrets.CRAK_API_KEY }}
+      CRAK_TOKEN: ${{ secrets.CRAK_TOKEN }}
+      CRAK_CAM_API_BASE: ${{ secrets.CRAK_CAM_API_BASE }}
+      CRAK_BRANDS: ${{ secrets.CRAK_BRANDS }}
+      CRAK_LANDING_ID: ${{ secrets.CRAK_LANDING_ID }}
+      CRAKREVENUE_API_KEY: ${{ secrets.CRAKREVENUE_API_KEY }}
+      CRAKREVENUE_API_TOKEN: ${{ secrets.CRAKREVENUE_API_TOKEN }}
+      CRACKREVENUE_TOKEN: ${{ secrets.CRACKREVENUE_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate deployment secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          missing=0
+          if [ -z "${CRAK_API_KEY}" ] && [ -z "${CRAKREVENUE_API_KEY}" ]; then
+            echo "::error::CRAK_API_KEY (or CRAKREVENUE_API_KEY) is not set in GitHub Actions secrets."
+            echo "Cloudflare Pages dashboard variables are not available to this workflow."
+            echo "Add repository secrets: Settings → Secrets and variables → Actions."
+            missing=1
+          fi
+          if [ -z "${CRAK_TOKEN}" ] && [ -z "${CRAKREVENUE_API_TOKEN}" ] && [ -z "${CRACKREVENUE_TOKEN}" ]; then
+            echo "::error::CRAK_TOKEN (or CRAKREVENUE_API_TOKEN / CRACKREVENUE_TOKEN) is not set in GitHub Actions secrets."
+            missing=1
+          fi
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not set in GitHub Actions secrets."
+            missing=1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID is not set in GitHub Actions secrets."
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            echo "See docs/cloudflare-pages-crak-build.md"
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build Next.js application for Cloudflare Pages
-        env:
-          CRAK_API_KEY: ${{ secrets.CRAK_API_KEY }}
-          CRAK_TOKEN: ${{ secrets.CRAK_TOKEN }}
-          CRAK_CAM_API_BASE: ${{ secrets.CRAK_CAM_API_BASE }}
-          CRAK_BRANDS: ${{ secrets.CRAK_BRANDS }}
-          CRAK_LANDING_ID: ${{ secrets.CRAK_LANDING_ID }}
-          CRAKREVENUE_API_KEY: ${{ secrets.CRAKREVENUE_API_KEY }}
-          CRAKREVENUE_API_TOKEN: ${{ secrets.CRAKREVENUE_API_TOKEN }}
-          CRACKREVENUE_TOKEN: ${{ secrets.CRACKREVENUE_TOKEN }}
         run: npm run pages:build
 
       - name: Deploy to Cloudflare Pages
@@ -43,4 +85,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .vercel/output/static --project-name=maturecamrooms
+          command: pages deploy .vercel/output/static --project-name=maturecamrooms --branch=${{ github.ref_name }}
