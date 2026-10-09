@@ -1,7 +1,7 @@
 import { getModelsPage } from "@/lib/models/getModels";
 import type { CamModel } from "@/lib/models/types";
 
-const MENU_SAMPLE_PAGES = 6;
+const MENU_SAMPLE_PAGES = 2;
 const PAGE_SIZE = 48;
 
 export async function fetchLiveMenuPool(): Promise<{
@@ -14,10 +14,13 @@ export async function fetchLiveMenuPool(): Promise<{
     ),
   );
 
+  const pool = pageResults.flatMap((p) =>
+    p.source === "crak" ? p.models : [],
+  );
   const feedOk =
+    pool.length > 0 &&
     pageResults.some((p) => p.source === "crak") &&
-    !pageResults.some((p) => p.source === "error" || p.source === "unconfigured");
-  const pool = pageResults.flatMap((p) => p.models);
+    !pageResults.some((p) => p.source === "unconfigured");
   const byId = new Map<string, CamModel>();
   for (const m of pool) byId.set(m.id, m);
 

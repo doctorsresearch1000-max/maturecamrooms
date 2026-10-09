@@ -52,7 +52,7 @@ function overlapRatio(a: Set<string>, b: Set<string>): number {
   return inter / Math.min(a.size, b.size);
 }
 
-function buildNicheCanonicalMap(
+export function buildNicheCanonicalMap(
   pool: CamModel[],
 ): Record<string, string> {
   const sets: Record<string, Set<string>> = {};

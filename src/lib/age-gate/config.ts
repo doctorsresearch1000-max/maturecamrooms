@@ -13,8 +13,14 @@ export const AGE_GATE_LEGAL_PATH_PREFIXES = [
   "/2257",
 ] as const;
 
+function normalizePath(pathname: string): string {
+  const base = pathname.split("?")[0] ?? pathname;
+  if (base.length > 1 && base.endsWith("/")) return base.slice(0, -1);
+  return base;
+}
+
 export function isAgeGateLegalPath(pathname: string): boolean {
-  const path = pathname.split("?")[0] ?? pathname;
+  const path = normalizePath(pathname);
   return AGE_GATE_LEGAL_PATH_PREFIXES.some(
     (p) => path === p || path.startsWith(`${p}/`),
   );
@@ -22,6 +28,7 @@ export function isAgeGateLegalPath(pathname: string): boolean {
 
 export function shouldSkipAgeGatePath(pathname: string): boolean {
   if (!pathname) return true;
-  if (pathname.startsWith("/api")) return true;
-  return isAgeGateLegalPath(pathname);
+  const path = normalizePath(pathname);
+  if (path.startsWith("/api")) return true;
+  return isAgeGateLegalPath(path);
 }
