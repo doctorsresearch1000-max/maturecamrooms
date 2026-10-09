@@ -1,7 +1,7 @@
 export function ModelCardSkeleton() {
   return (
     <div
-      className="aspect-[3/4] animate-pulse rounded-card bg-surface-elevated"
+      className="aspect-[3/4] animate-pulse rounded-[var(--radius-card)] bg-surface-elevated"
       aria-hidden
     />
   );

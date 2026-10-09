@@ -6,58 +6,110 @@ import { ModelDirectoryNav } from "@/components/layout/ModelDirectoryNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { siteConfig } from "@/lib/site";
 
+function SearchIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-3.5-3.5" />
+    </svg>
+  );
+}
+
+function HamburgerIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  );
+}
+
 export function SiteHeader() {
   const { setDrawerOpen, setSearchOpen, favorites } = useShell();
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md"
+      className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[var(--header-bg)] lg:sticky"
     >
-      <div className="mx-auto flex h-[var(--header-h)] max-w-[1920px] items-center gap-1 px-2 sm:gap-2 sm:px-4 lg:px-6">
+      {/* Mobile: menu · wordmark · search only */}
+      <div className="mx-auto grid h-[var(--header-h)] max-w-[1920px] grid-cols-[3.25rem_1fr_3.25rem] items-center px-3 lg:hidden">
         <button
           type="button"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-surface-hover lg:hidden"
+          className="flex h-11 w-11 items-center justify-center text-white"
           aria-label="Open menu"
           onClick={() => setDrawerOpen(true)}
         >
-          <span className="flex flex-col gap-1.5" aria-hidden>
-            <span className="block h-0.5 w-5 bg-current" />
-            <span className="block h-0.5 w-5 bg-current" />
-            <span className="block h-0.5 w-5 bg-current" />
-          </span>
+          <HamburgerIcon />
         </button>
 
         <Link
           href="/"
-          className="flex shrink-0 items-center lg:mr-2"
+          className="flex justify-center px-2 text-center"
         >
+          <span className="truncate text-[1.05rem] font-bold tracking-tight text-white sm:text-lg">
+            {siteConfig.name}
+          </span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          className="flex h-11 w-11 items-center justify-center text-white"
+          aria-label="Search models"
+        >
+          <SearchIcon />
+        </button>
+      </div>
+
+      {/* Desktop */}
+      <div className="mx-auto hidden h-[var(--header-h)] max-w-[1920px] items-center gap-2 px-4 lg:flex lg:px-6">
+        <Link href="/" className="flex shrink-0 items-center lg:mr-2">
           <Image
             src="/maturecamrooms-logo.png"
             alt={siteConfig.name}
             width={747}
             height={59}
-            className="h-[1.65rem] w-auto max-w-[min(42vw,11rem)] sm:h-9 lg:h-10 lg:max-w-[15.5rem]"
+            className="h-10 w-auto max-w-[15.5rem]"
             priority
           />
         </Link>
 
-        <div className="hidden min-w-0 lg:flex lg:flex-1">
+        <div className="min-w-0 flex-1">
           <ModelDirectoryNav variant="header" />
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex min-h-[40px] min-w-[120px] max-w-[200px] flex-1 items-center gap-2 rounded-full border border-border bg-surface-elevated px-3 text-left text-base text-text-muted transition hover:border-accent/30 sm:min-w-[160px] lg:max-w-xs"
+            className="flex min-h-[40px] min-w-[160px] max-w-xs items-center gap-2 rounded-full border border-border bg-surface-elevated px-3 text-left text-base text-text-muted transition hover:border-accent/30"
             aria-label="Search models"
           >
-            <span className="text-text-secondary" aria-hidden>⌕</span>
-            <span className="truncate text-base">Search models…</span>
+            <SearchIcon />
+            <span className="truncate text-base text-text-secondary">
+              Search models…
+            </span>
           </button>
           <button
             type="button"
-            className="relative hidden h-10 min-w-[40px] items-center justify-center rounded-md px-2 text-sm font-medium text-text-secondary hover:bg-surface-hover sm:flex"
+            className="relative flex h-10 min-w-[40px] items-center justify-center rounded-md px-2 text-sm font-medium text-text-secondary hover:bg-surface-hover"
             aria-label={`Favorites, ${favorites.size} saved`}
             onClick={() => setDrawerOpen(true)}
           >
@@ -68,7 +120,7 @@ export function SiteHeader() {
               </span>
             ) : null}
           </button>
-          <div className="hidden gap-2 lg:flex">
+          <div className="flex gap-2">
             <button
               type="button"
               className="rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:text-foreground"

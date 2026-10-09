@@ -9,13 +9,17 @@ export type DiscoveryFilter =
   | "popular"
   | "new";
 
-const FILTERS: { id: DiscoveryFilter; label: string }[] = [
+const MOBILE_FILTERS: { id: DiscoveryFilter; label: string }[] = [
   { id: "live", label: "Live now" },
   { id: "all", label: "All" },
   { id: "mature", label: "Mature" },
   { id: "milf", label: "MILF" },
   { id: "cougar", label: "Cougar" },
   { id: "popular", label: "Popular" },
+];
+
+const DESKTOP_FILTERS: { id: DiscoveryFilter; label: string }[] = [
+  ...MOBILE_FILTERS,
   { id: "new", label: "New" },
 ];
 
@@ -26,30 +30,60 @@ type FilterBarProps = {
 
 export function FilterBar({ active, onChange }: FilterBarProps) {
   return (
-    <div
-      className="scrollbar-none -mx-0.5 flex items-center gap-1.5 overflow-x-auto px-0.5 py-1 lg:gap-2 lg:py-2"
-      role="tablist"
-      aria-label="Browse categories"
-    >
-      {FILTERS.map((filter) => {
-        const isActive = active === filter.id;
-        return (
-          <button
-            key={filter.id}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => onChange(filter.id)}
-            className={`min-h-[34px] shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold transition duration-fast sm:min-h-[40px] sm:px-4 sm:py-2 sm:text-xs lg:text-sm ${
-              isActive
-                ? "bg-accent text-white shadow-sm"
-                : "border border-border/80 bg-surface-elevated/80 text-text-secondary hover:bg-surface-hover hover:text-foreground"
-            }`}
-          >
-            {filter.label}
-          </button>
-        );
-      })}
-    </div>
+    <>
+      <div
+        className="scrollbar-none flex items-center gap-2 overflow-x-auto px-3 py-1.5 lg:hidden"
+        role="tablist"
+        aria-label="Browse categories"
+      >
+        {MOBILE_FILTERS.map((filter) => {
+          const isActive = active === filter.id;
+          const isLive = filter.id === "live";
+          return (
+            <button
+              key={filter.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(filter.id)}
+              className={`shrink-0 rounded-full px-3 py-1 text-[13px] font-semibold leading-none transition duration-fast ${
+                isActive && isLive
+                  ? "bg-accent text-white shadow-[0_2px_12px_rgba(255,107,107,0.35)]"
+                  : isActive
+                    ? "bg-white/12 text-white"
+                    : "bg-white/[0.04] text-text-secondary hover:bg-white/[0.08] hover:text-white"
+              }`}
+            >
+              {filter.label}
+            </button>
+          );
+        })}
+      </div>
+      <div
+        className="scrollbar-none hidden items-center gap-1.5 overflow-x-auto py-2 lg:flex"
+        role="tablist"
+        aria-label="Browse categories"
+      >
+        {DESKTOP_FILTERS.map((filter) => {
+          const isActive = active === filter.id;
+          return (
+            <button
+              key={filter.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(filter.id)}
+              className={`min-h-[40px] shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition duration-fast lg:text-sm ${
+                isActive
+                  ? "bg-accent text-white shadow-sm"
+                  : "border border-border/80 bg-surface-elevated/80 text-text-secondary hover:bg-surface-hover hover:text-foreground"
+              }`}
+            >
+              {filter.label}
+            </button>
+          );
+        })}
+      </div>
+    </>
   );
 }

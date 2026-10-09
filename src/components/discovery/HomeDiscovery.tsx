@@ -90,7 +90,7 @@ function DiscoverySection({
     >
       <h2
         id={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
-        className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-foreground sm:mb-3 sm:gap-2 sm:text-lg"
+        className="mb-1.5 hidden items-center gap-1.5 text-sm font-semibold text-foreground sm:mb-3 sm:flex sm:gap-2 sm:text-lg"
       >
         {title === "Live now" ? (
           <span
@@ -196,30 +196,35 @@ export function HomeDiscovery({
   };
 
   return (
-    <div className="px-1.5 py-2 sm:px-4 sm:py-4 lg:px-6">
-      <section aria-labelledby="home-hero" className="mb-1 sm:mb-3">
-        <h1
-          id="home-hero"
-          className="text-base font-bold tracking-tight text-foreground sm:text-xl"
-        >
-          {liveCount > 0
-            ? `${liveCount} mature live cam models online`
-            : "Mature & MILF live cam models"}
-        </h1>
-        <p className="mt-0.5 text-[11px] leading-snug text-text-secondary sm:text-sm">
-          Watch mature, MILF and cougar webcam performers in HD. Free to browse ·
-          18+ only
-        </p>
-        {unconfigured ? (
-          <p className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-            {statusMessage}
-          </p>
-        ) : statusMessage ? (
-          <p className="mt-2 text-xs text-text-muted">{statusMessage}</p>
-        ) : null}
-      </section>
+    <>
+      <div
+        className="sticky top-[var(--header-h)] z-40 border-b border-white/[0.06] bg-surface/95 backdrop-blur-md lg:static lg:border-0 lg:bg-transparent lg:backdrop-blur-none"
+      >
+        <FilterBar active={filter} onChange={setFilter} />
+      </div>
 
-      <FilterBar active={filter} onChange={setFilter} />
+      <div className="px-2 py-2 sm:px-4 sm:py-4 lg:px-6">
+        <section aria-labelledby="home-hero" className="mb-2 sm:mb-3">
+          <h1
+            id="home-hero"
+            className="sr-only sm:not-sr-only sm:text-xl sm:font-bold sm:tracking-tight sm:text-foreground"
+          >
+            {liveCount > 0
+              ? `${liveCount} mature live cam models online`
+              : "Mature & MILF live cam models"}
+          </h1>
+          <p className="hidden text-sm text-text-secondary sm:block">
+            Watch mature, MILF and cougar webcam performers in HD. Free to browse ·
+            18+ only
+          </p>
+          {unconfigured ? (
+            <p className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              {statusMessage}
+            </p>
+          ) : statusMessage ? (
+            <p className="mt-2 text-xs text-text-muted">{statusMessage}</p>
+          ) : null}
+        </section>
 
       {catalog.length === 0 ? (
         <p className="mt-6 rounded-card border border-border bg-surface px-4 py-10 text-center text-sm text-text-secondary">
@@ -254,12 +259,13 @@ export function HomeDiscovery({
       )}
 
       {loadingMore && catalog.length > 0 ? (
-        <div className="mt-2 grid grid-cols-2 gap-1 sm:gap-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <ModelCardSkeleton key={i} />
           ))}
         </div>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }

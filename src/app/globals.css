@@ -3,22 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --background: #08090b;
-  --surface: #111216;
-  --surface-elevated: #17181c;
-  --surface-hover: #1d1e23;
-  --border: rgba(255, 255, 255, 0.08);
-  --text-primary: #f5f5f7;
-  --text-secondary: #9699a3;
-  --text-muted: #686b74;
-  --accent: #f43f5e;
-  --accent-hover: #fb7185;
-  --live: #f43f5e;
+  --background: #0a0a0b;
+  --surface: #111113;
+  --surface-elevated: #161618;
+  --surface-hover: #1c1c1f;
+  --border: rgba(255, 255, 255, 0.07);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #ff6b6b;
+  --accent-hover: #ff8585;
+  --live: #ff6b6b;
   --online: #22c55e;
+  --header-bg: #0a0a0b;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --header-h: 3rem;
+  --radius-card: 14px;
+  --header-h: 3.5rem;
+  --filter-bar-h: 2.375rem;
   --transition-fast: 150ms;
   --transition-base: 200ms;
   --transition-drawer: 300ms;
@@ -59,5 +62,26 @@ body {
   }
   .safe-pb-mobile {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .live-pulse {
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.45);
+  }
+  50% {
+    opacity: 0.92;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-pulse {
+    animation: none;
   }
 }
