@@ -6,7 +6,7 @@ import { ModelCard } from "@/components/cams/ModelCard";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { countryCodeToFlag, countryLabel } from "@/lib/country";
-import { resolveRoomUrl, roomLinkProps } from "@/lib/models/resolveRoomUrl";
+import { ProfileRoomCta } from "@/components/profile/ProfileRoomCta";
 import type { CamModel } from "@/lib/models/types";
 import type { ModelSEO } from "@/lib/seo/modelSeo";
 import { categoryPath } from "@/lib/seo/slug";
@@ -26,7 +26,6 @@ type ProfileViewProps = {
 
 export function ProfileView({ model, related, seo }: ProfileViewProps) {
   const [expanded, setExpanded] = useState(false);
-  const roomUrl = resolveRoomUrl(model);
   const flag = countryCodeToFlag(model.countryCode);
   const country = countryLabel(model.countryCode, model.country);
   const description = model.description?.trim();
@@ -39,7 +38,7 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
     isCategoryIndexableForModel(model, seo.taxonomyIndexability);
 
   return (
-    <div className="pb-4">
+    <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-4">
       <div className="px-3 pt-3 sm:px-6">
         <Breadcrumbs items={seo.breadcrumbs} className="mb-1" />
       </div>
@@ -87,18 +86,7 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
           ) : null}
         </header>
 
-        <div>
-          <a
-            href={roomUrl}
-            className="flex min-h-[48px] w-full items-center justify-center rounded-card bg-accent text-base font-semibold text-white transition hover:bg-accent-hover sm:max-w-md"
-            {...roomLinkProps(model)}
-          >
-            {model.isLive ? "Enter live room" : "View room when live"}
-          </a>
-          <p className="mt-2 text-[11px] text-text-muted">
-            Opens in a new window · Adults 18+ only
-          </p>
-        </div>
+        <ProfileRoomCta model={model} position="hero" />
 
         <p className="text-sm leading-relaxed text-text-secondary">{seo.intro}</p>
 
@@ -206,6 +194,8 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
           </dl>
         </section>
 
+        <ProfileRoomCta model={model} position="after-profile" />
+
         {seo.tags.length > 0 ? (
           <section aria-labelledby="tags-heading">
             <h2
@@ -311,6 +301,8 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
       </div>
 
       <ModelSeoFooter model={model} related={related} seo={seo} />
+
+      <ProfileRoomCta model={model} position="sticky" />
     </div>
   );
 }
