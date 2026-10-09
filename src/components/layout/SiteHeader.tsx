@@ -9,8 +9,8 @@ import { siteConfig } from "@/lib/site";
 function SearchIcon() {
   return (
     <svg
-      width="22"
-      height="22"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -27,8 +27,8 @@ function SearchIcon() {
 function HamburgerIcon() {
   return (
     <svg
-      width="22"
-      height="22"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -49,23 +49,26 @@ export function SiteHeader() {
       className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[var(--header-bg)] lg:sticky"
     >
       {/* Mobile: menu · wordmark · search only */}
-      <div className="mx-auto grid h-[var(--header-h)] max-w-[1920px] grid-cols-[3.25rem_1fr_3.25rem] items-center px-3 lg:hidden">
+      <div className="mx-auto grid h-[var(--header-h)] max-w-[1920px] grid-cols-[2.75rem_1fr_2.75rem] items-center px-2 lg:hidden">
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center text-white"
+          className="flex h-10 w-10 items-center justify-center text-white"
           aria-label="Open menu"
           onClick={() => setDrawerOpen(true)}
         >
           <HamburgerIcon />
         </button>
 
-        <Link href="/" className="flex min-w-0 justify-center px-1">
+        <Link
+          href="/"
+          className="flex min-w-0 justify-center px-1 [grid-column:2]"
+        >
           <Image
             src="/maturecamrooms-logo.png"
             alt={siteConfig.name}
             width={747}
             height={59}
-            className="h-[1.375rem] w-auto max-w-[min(58vw,12.5rem)]"
+            className="mx-auto h-[1.3125rem] w-auto max-w-[min(56vw,12rem)]"
             priority
           />
         </Link>
@@ -73,7 +76,7 @@ export function SiteHeader() {
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex h-11 w-11 items-center justify-center text-white"
+          className="flex h-10 w-10 items-center justify-center text-white [grid-column:3]"
           aria-label="Search models"
         >
           <SearchIcon />
@@ -94,7 +97,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="min-w-0 flex-1">
-          <ModelDirectoryNav variant="header" />
+          <ModelDirectoryNav />
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">

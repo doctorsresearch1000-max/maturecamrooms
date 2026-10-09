@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ModelDirectoryNav } from "@/components/layout/ModelDirectoryNav";
+import { DrawerCategoryNav } from "@/components/layout/DrawerCategoryNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { Drawer } from "@/components/ui/Drawer";
 import { siteConfig } from "@/lib/site";
@@ -20,10 +20,10 @@ function SidebarNav({
   favoritesCount?: number;
 }) {
   return (
-    <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-sm lg:gap-6 lg:p-4">
+    <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-3 text-sm lg:gap-6 lg:p-4">
       <div className="lg:hidden">
         <p className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-          Your list
+          Your account
         </p>
         <ul className="space-y-0.5">
           {PERSONAL.map((item) => (
@@ -31,7 +31,7 @@ function SidebarNav({
               <Link
                 href={item.href}
                 onClick={onNavigate}
-                className="flex min-h-[44px] items-center justify-between rounded-lg px-3 font-medium text-foreground transition hover:bg-surface-hover"
+                className="flex min-h-[44px] items-center justify-between rounded-lg px-3 font-medium text-white transition hover:bg-surface-hover"
               >
                 {item.label}
                 {item.label === "Favorites" &&
@@ -47,7 +47,7 @@ function SidebarNav({
         </ul>
       </div>
 
-      <ModelDirectoryNav variant="drawer" onNavigate={onNavigate} />
+      <DrawerCategoryNav onNavigate={onNavigate} />
 
       <div className="hidden lg:block">
         <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
@@ -123,7 +123,7 @@ export function SidebarMobile() {
       <div className="grid grid-cols-2 gap-2 border-b border-border px-3 py-2.5">
         <button
           type="button"
-          className="min-h-[40px] rounded-lg border border-border bg-surface-elevated text-sm font-semibold text-foreground"
+          className="min-h-[40px] rounded-lg border border-border bg-surface-elevated text-sm font-semibold text-white"
         >
           Login
         </button>

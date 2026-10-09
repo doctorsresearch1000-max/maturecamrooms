@@ -45,6 +45,13 @@ async function assertCrakBuildEnv(): Promise<void> {
     ]),
   );
 
+  const cfPagesGitBuild = Boolean(
+    process.env.CF_PAGES || process.env.CF_PAGES_BRANCH,
+  );
+  const wranglerPublicOnly =
+    Boolean(process.env.NEXT_PUBLIC_SITE_NAME) &&
+    !presence.CRAK_API_KEY?.present;
+
   console.error(
     JSON.stringify(
       {
@@ -53,8 +60,12 @@ async function assertCrakBuildEnv(): Promise<void> {
         required:
           "CRAK_API_KEY + CRAK_TOKEN (or CRAKREVENUE_API_KEY + CRAKREVENUE_API_TOKEN / CRACKREVENUE_TOKEN)",
         cloudflare:
-          "Inject CRAK_API_KEY + CRAK_TOKEN at build time: Cloudflare Pages → Environment variables (Production and Preview if preview builds run), or GitHub Actions repository secrets when using .github/workflows/deploy.yml. Functions-only bindings are not available during npm run pages:build.",
-        documentation: "docs/cloudflare-pages-crak-build.md",
+          cfPagesGitBuild
+            ? "Cloudflare Pages Git build detected (CF_PAGES*). GitHub Actions secrets are NOT injected here. Add encrypted CRAK_API_KEY + CRAK_TOKEN under Workers & Pages → maturecamrooms → Settings → Environment variables for BOTH Production and Preview (preview branch builds need Preview scope). If the build log only lists NEXT_PUBLIC_* from wrangler.toml, CRAK is not scoped to this environment. Recommended: disable automatic Git builds and use .github/workflows/deploy.yml only (see docs/DEPLOY-DEFINITIVO.md)."
+            : "Inject CRAK_API_KEY + CRAK_TOKEN at build time: Cloudflare Pages → Environment variables (Production and Preview), or GitHub Actions repository secrets when using .github/workflows/deploy.yml. Functions-only bindings are not available during npm run pages:build.",
+        wranglerPublicVarsOnlyHint: wranglerPublicOnly,
+        cfPagesGitBuild,
+        documentation: "docs/DEPLOY-DEFINITIVO.md",
         env: envSummary,
       },
       null,

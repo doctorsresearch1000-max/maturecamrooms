@@ -1,3 +1,6 @@
+# Pages Git builds read [vars] below (public only). CRAK_* must be set in the
+# Cloudflare dashboard for Production + Preview, OR use GitHub Actions only —
+# see docs/DEPLOY-DEFINITIVO.md.
 name = "maturecamrooms"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
