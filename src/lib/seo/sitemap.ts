@@ -21,6 +21,8 @@ import {
   type SitemapResolveResult,
 } from "@/lib/crak/sitemapResolve";
 import { buildTaxonomyIndexabilityContext } from "@/lib/seo/taxonomyInventory";
+import { fetchLiveMenuPool } from "@/lib/taxonomy/fetchLivePool";
+import { buildLiveMenuInventory } from "@/lib/taxonomy/liveMenuInventory";
 import type { CamModel } from "@/lib/models/types";
 
 export class SitemapGenerationError extends Error {
@@ -53,12 +55,22 @@ export async function runSitemapPipeline(): Promise<SitemapPipelineResult> {
 
   const resolve = await resolveSitemapModels(catalog.models);
   const taxonomyContext = buildTaxonomyIndexabilityContext(catalog.models);
+  const { pool, feedOk } = await fetchLiveMenuPool();
+  const liveMenu = buildLiveMenuInventory(pool, feedOk);
+  const taxonomyContextWithLiveFacets = {
+    ...taxonomyContext,
+    indexableCategories: new Set(liveMenu.niches.map((n) => n.slug)),
+    indexableAgeBands: liveMenu.indexableAge,
+    indexableEthnicities: liveMenu.indexableEthnicity,
+    indexableHairs: liveMenu.indexableHair,
+    indexableCountries: new Set(liveMenu.countries.map((c) => c.slug)),
+  };
 
   return {
     catalog,
     resolve,
     indexableModels: resolve.models,
-    taxonomyContext,
+    taxonomyContext: taxonomyContextWithLiveFacets,
   };
 }
 
