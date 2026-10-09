@@ -1,8 +1,8 @@
 import { filterModelsByCategory } from "@/lib/seo/filters";
 import {
   CATEGORY_DISPLAY,
-  SITE_CATEGORIES,
-  type SiteCategory,
+  NAV_SITE_CATEGORIES,
+  type NavSiteCategory,
 } from "@/lib/seo/config";
 import {
   agePath,
@@ -103,7 +103,7 @@ function topLanguages(pool: CamModel[]): { slug: string; label: string; count: n
   }
   return [...counts.entries()]
     .map(([slug, { label, count }]) => ({ slug, label, count }))
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
 }
 
 function meanAge(models: CamModel[]): number | null {
@@ -203,14 +203,14 @@ export function buildCatalogMenuInventory(
 
   const niches: MenuFacetItem[] = [];
   if (catalogOk) {
-    for (const slug of SITE_CATEGORIES) {
+    for (const slug of NAV_SITE_CATEGORIES) {
       const count = countFacet(pool, slug, filterModelsByCategory);
       if (count < menuMin) continue;
       const canon = nicheCanonicalHref(slug, nicheCanonicalTo);
       if (canon) continue;
       niches.push({
         slug,
-        label: CATEGORY_DISPLAY[slug as SiteCategory],
+        label: CATEGORY_DISPLAY[slug as NavSiteCategory],
         href: categoryPath(slug),
         count,
         icon: facetIcon("niche", slug),
@@ -253,7 +253,7 @@ export function buildCatalogMenuInventory(
         icon: facetIcon("ethnicity", slug),
       });
     }
-    ethnicities.sort((a, b) => b.count - a.count);
+    ethnicities.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
 
   const hairs: MenuFacetItem[] = [];
@@ -276,7 +276,7 @@ export function buildCatalogMenuInventory(
         icon: facetIcon("hair", slug),
       });
     }
-    hairs.sort((a, b) => b.count - a.count);
+    hairs.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
 
   const busts: MenuFacetItem[] = [];
@@ -299,7 +299,7 @@ export function buildCatalogMenuInventory(
         icon: facetIcon("bust", slug),
       });
     }
-    busts.sort((a, b) => b.count - a.count);
+    busts.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
 
   const figures: MenuFacetItem[] = [];
@@ -322,7 +322,7 @@ export function buildCatalogMenuInventory(
         icon: facetIcon("figure", slug),
       });
     }
-    figures.sort((a, b) => b.count - a.count);
+    figures.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
 
   const countries: MenuFacetItem[] = [];
@@ -346,7 +346,7 @@ export function buildCatalogMenuInventory(
         icon: facetIcon("country", slug),
       });
     }
-    countries.sort((a, b) => b.count - a.count);
+    countries.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
 
   const languages: MenuFacetItem[] = [];
@@ -416,10 +416,10 @@ export function buildCatalogSitemapBundle(
   const combos = buildComboLandings(pool, min);
 
   const indexableBusts = new Set(
-    menu.busts.filter((b) => b.count >= min).map((b) => b.slug),
+    menu.busts.filter((b) => (b.count ?? 0) >= min).map((b) => b.slug),
   );
   const indexableFigures = new Set(
-    menu.figures.filter((f) => f.count >= min).map((f) => f.slug),
+    menu.figures.filter((f) => (f.count ?? 0) >= min).map((f) => f.slug),
   );
 
   return {

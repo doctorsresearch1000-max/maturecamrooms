@@ -3,47 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { DrawerMenuNav } from "@/components/layout/DrawerMenuNav";
+import { TaxonomyMenuNav } from "@/components/layout/TaxonomyMenuNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { Drawer } from "@/components/ui/Drawer";
+import { useDrawerMenu } from "@/hooks/useDrawerMenu";
 import { siteConfig } from "@/lib/site";
 
-function SidebarNavDesktop() {
-  return (
-    <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-sm lg:gap-6 lg:p-4">
-      <div>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-          Quick links
-        </p>
-        <ul className="space-y-0.5">
-          <li>
-            <Link
-              href="/"
-              className="flex min-h-[44px] items-center rounded-md px-3 font-medium text-foreground hover:bg-surface-hover"
-            >
-              Live now
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/?filter=all"
-              className="flex min-h-[44px] items-center rounded-md px-3 font-medium text-foreground hover:bg-surface-hover"
-            >
-              All models
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  );
-}
-
 export function SidebarDesktop() {
+  const menu = useDrawerMenu(true);
   return (
     <aside
-      className="hidden w-56 shrink-0 border-r border-border bg-surface lg:block"
+      className="sticky top-[var(--header-h)] hidden h-[calc(100dvh-var(--header-h))] w-56 shrink-0 flex-col border-r border-border bg-surface lg:flex"
       aria-label="Filters and categories"
     >
-      <SidebarNavDesktop />
+      <TaxonomyMenuNav variant="sidebar" {...menu} />
     </aside>
   );
 }

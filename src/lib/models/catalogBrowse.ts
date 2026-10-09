@@ -3,6 +3,10 @@ import {
   pageCatalog,
   sortCatalogBrowse,
 } from "@/lib/crak/fullCatalog";
+import {
+  fetchLiveOverlay,
+  mergeCatalogWithLive,
+} from "@/lib/crak/liveOverlay";
 import { filterModelsByCategory } from "@/lib/seo/filters";
 import type { CamModel, ModelsResult } from "@/lib/models/types";
 
@@ -11,17 +15,29 @@ export type CatalogBrowseQuery = {
   limit?: number;
   liveOnly?: boolean;
   category?: string;
-  filterFn?: (models: CamModel[], slug: string) => CamModel[];
-  filterSlug?: string;
 };
 
 export async function browseCatalog(
   query: CatalogBrowseQuery = {},
 ): Promise<ModelsResult & { total?: number }> {
-  const limit = Math.min(48, Math.max(1, query.limit ?? 24));
+  const limit = Math.min(48, Math.max(1, query.limit ?? 48));
   const page = Math.max(1, query.page ?? 1);
 
   try {
+    const overlay = await fetchLiveOverlay();
+
+    if (query.liveOnly) {
+      const start = (page - 1) * limit;
+      const slice = overlay.liveModels.slice(start, start + limit);
+      return {
+        models: slice,
+        source: overlay.feedOk ? "crak" : "unconfigured",
+        page,
+        hasMore: overlay.feedOk && start + limit < overlay.liveModels.length,
+        total: overlay.feedOk ? overlay.liveModels.length : 0,
+      };
+    }
+
     const snapshot = await getFullCatalog();
     if (snapshot.models.length === 0) {
       return {
@@ -37,13 +53,9 @@ export async function browseCatalog(
     if (query.category) {
       pool = filterModelsByCategory(pool, query.category);
     }
-    if (query.filterFn && query.filterSlug) {
-      pool = query.filterFn(pool, query.filterSlug);
-    }
-    if (query.liveOnly) {
-      pool = pool.filter((m) => m.isLive);
-    } else {
-      pool = sortCatalogBrowse(pool);
+    pool = mergeCatalogWithLive(pool, overlay);
+    if (!overlay.feedOk) {
+      pool = sortCatalogBrowse(pool.map((m) => ({ ...m, isLive: false })));
     }
 
     const paged = pageCatalog(pool, page, limit);

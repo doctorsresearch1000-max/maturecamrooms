@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORY_DISPLAY, SITE_CATEGORIES } from "@/lib/seo/config";
+import { CATEGORY_DISPLAY, NAV_SITE_CATEGORIES } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
 import type { CamModel } from "@/lib/models/types";
 import type { ModelSEO } from "@/lib/seo/modelSeo";
@@ -11,7 +11,7 @@ type ModelSeoFooterProps = {
 };
 
 export function ModelSeoFooter({ model, related, seo }: ModelSeoFooterProps) {
-  const categoryLinks = SITE_CATEGORIES.filter((cat) =>
+  const categoryLinks = NAV_SITE_CATEGORIES.filter((cat) =>
     seo.taxonomyIndexability.indexableCategories.has(cat),
   );
 
@@ -27,7 +27,7 @@ export function ModelSeoFooter({ model, related, seo }: ModelSeoFooterProps) {
         Explore more live cams
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-        Browse mature, MILF and cougar webcam models on MatureCamRooms. Watch{" "}
+        Browse mature and MILF webcam models on MatureCamRooms. Watch{" "}
         {model.displayName}&apos;s live room, compare similar performers, and
         discover new models by category or country.
       </p>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ShellProviders } from "@/components/layout/ShellProviders";
+import { TaxonomyCrawlNav } from "@/components/layout/TaxonomyCrawlNav";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import "./globals.css";
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description:
-    "Watch live mature, MILF, cougar and mom webcam models in HD. Fast mobile browsing and SEO-friendly model profiles — 18+ only.",
+    "Watch live mature and MILF webcam models in HD. Fast mobile browsing and SEO-friendly model profiles — 18+ only.",
   keywords: siteConfig.defaultTags,
   applicationName: siteConfig.name,
   alternates: {
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteConfig.name} — Live Mature & MILF Cams`,
     description:
-      "Live mature, MILF and cougar cams — browse models and watch free live rooms. 18+ only.",
+      "Live mature and MILF cams — browse models and watch free live rooms. 18+ only.",
   },
   robots: {
     index: true,
@@ -66,6 +67,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
+        <TaxonomyCrawlNav />
         <ShellProviders>{children}</ShellProviders>
       </body>
     </html>
