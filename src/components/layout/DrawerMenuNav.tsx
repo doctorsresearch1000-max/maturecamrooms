@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  DRAWER_AGE_LINKS,
   DRAWER_POPULAR_LINKS,
   DRAWER_PRIMARY_LINKS,
 } from "@/lib/navigation/drawerMenu";
@@ -64,12 +63,14 @@ function NavRow({
   href,
   label,
   count,
+  icon,
   onNavigate,
   accent,
 }: {
   href: string;
   label: string;
   count?: number;
+  icon?: string;
   onNavigate?: () => void;
   accent?: boolean;
 }) {
@@ -77,13 +78,20 @@ function NavRow({
     <Link
       href={href}
       onClick={onNavigate}
-      className={`flex min-h-[44px] items-center justify-between rounded-md px-2 text-[15px] font-medium transition ${
+      className={`flex min-h-[44px] items-center justify-between gap-2 rounded-md px-2 text-[15px] font-medium transition ${
         accent
           ? "text-accent"
           : "text-white hover:bg-white/[0.04]"
       }`}
     >
-      <span>{label}</span>
+      <span className="flex min-w-0 items-center gap-2">
+        {icon ? (
+          <span className="w-4 shrink-0 text-center text-xs opacity-80" aria-hidden>
+            {icon}
+          </span>
+        ) : null}
+        <span className="truncate">{label}</span>
+      </span>
       {count !== undefined ? (
         <span
           className={`text-xs font-semibold tabular-nums ${
@@ -102,7 +110,16 @@ export function DrawerMenuNav({
   favoritesCount = 0,
   onOpenSearch,
 }: DrawerMenuNavProps) {
-  const { liveCount, categories, countries, loading } = useDrawerMenu(true);
+  const {
+    feedOk,
+    liveCount,
+    categories,
+    ageBands,
+    ethnicities,
+    hairs,
+    countries,
+    loading,
+  } = useDrawerMenu(true);
 
   return (
     <nav className="flex flex-1 flex-col overflow-y-auto px-2 pb-6 pt-1">
@@ -110,7 +127,9 @@ export function DrawerMenuNav({
         <p className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-white">
           {loading
             ? "Loading live count…"
-            : `${liveCount > 0 ? liveCount : "—"} models online`}
+            : feedOk && liveCount !== undefined && liveCount > 0
+              ? `${liveCount} models online`
+              : "Browse live mature cams"}
         </p>
       </div>
 
@@ -167,46 +186,77 @@ export function DrawerMenuNav({
         ))}
       </ul>
 
-      <Section title="Mature niche" defaultOpen>
-        {loading && categories.length === 0 ? (
-          <p className="px-2 py-2 text-xs text-text-muted">Loading…</p>
-        ) : (
+      {categories.length > 0 ? (
+        <Section title="Niche" defaultOpen>
           <ul className="space-y-0.5" role="list">
-            {(categories.length > 0
-              ? categories
-              : DRAWER_AGE_LINKS.map((l) => ({
-                  slug: l.id,
-                  label: l.label.replace(/^.*·\s*/, ""),
-                  href: l.href,
-                  count: 0,
-                }))
-            ).map((cat) => (
+            {categories.map((cat) => (
               <li key={cat.slug}>
                 <NavRow
                   href={cat.href}
                   label={cat.label}
                   count={cat.count}
+                  icon={cat.icon}
                   onNavigate={onNavigate}
                 />
               </li>
             ))}
           </ul>
-        )}
-      </Section>
+        </Section>
+      ) : null}
 
-      <Section title="Age & style">
-        <ul className="space-y-0.5" role="list">
-          {DRAWER_AGE_LINKS.map((item) => (
-            <li key={item.id}>
-              <NavRow
-                href={item.href}
-                label={item.label}
-                onNavigate={onNavigate}
-              />
-            </li>
-          ))}
-        </ul>
-      </Section>
+      {ageBands.length > 0 ? (
+        <Section title="Age">
+          <ul className="space-y-0.5" role="list">
+            {ageBands.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {ethnicities.length > 0 ? (
+        <Section title="Ethnicity">
+          <ul className="space-y-0.5" role="list">
+            {ethnicities.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {hairs.length > 0 ? (
+        <Section title="Hair">
+          <ul className="space-y-0.5" role="list">
+            {hairs.map((item) => (
+              <li key={item.slug}>
+                <NavRow
+                  href={item.href}
+                  label={item.label}
+                  count={item.count}
+                  icon={item.icon}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
 
       <Section title="Popular filters">
         <ul className="space-y-0.5" role="list">
@@ -231,6 +281,7 @@ export function DrawerMenuNav({
                   href={c.href}
                   label={c.label}
                   count={c.count}
+                  icon={c.icon}
                   onNavigate={onNavigate}
                 />
               </li>

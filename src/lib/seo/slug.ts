@@ -32,3 +32,15 @@ export function languagePath(languageSlug: string): string {
 export function platformPath(platform: string): string {
   return `/platform/${slugify(platform)}`;
 }
+
+export function agePath(bandSlug: string): string {
+  return `/age/${slugify(bandSlug)}`;
+}
+
+export function ethnicityPath(ethnicitySlug: string): string {
+  return `/ethnicity/${slugify(ethnicitySlug)}`;
+}
+
+export function hairPath(hairSlug: string): string {
+  return `/hair/${slugify(hairSlug)}`;
+}

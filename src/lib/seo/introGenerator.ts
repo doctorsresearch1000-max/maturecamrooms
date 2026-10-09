@@ -56,6 +56,12 @@ export function generateTaxonomyIntro(label: string): string {
   return `Explore live ${label.toLowerCase()} cam models available on ${siteConfig.name}.`;
 }
 
-export function generateTaxonomyH1(label: string): string {
-  return `${label} Cam Models`;
+export function generateTaxonomyH1(
+  label: string,
+  modelCount?: number,
+): string {
+  if (typeof modelCount === "number" && modelCount > 0) {
+    return `${label} cam models (${modelCount} live now)`;
+  }
+  return `${label} cam models`;
 }

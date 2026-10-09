@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ModelGrid } from "@/components/cams/ModelGrid";
 import { ModelCardSkeleton } from "@/components/cams/ModelCardSkeleton";
 import { FilterBar, type DiscoveryFilter } from "@/components/discovery/FilterBar";
+import { HeaderFacetChips } from "@/components/discovery/HeaderFacetChips";
 import type { CamModel, ModelsResult } from "@/lib/models/types";
 
 type HomeDiscoveryProps = {
@@ -184,6 +185,7 @@ export function HomeDiscovery({
       <div
         className="sticky top-[var(--header-h)] z-40 border-b border-white/[0.08] bg-[var(--header-bg)] lg:static lg:border-0 lg:bg-transparent"
       >
+        <HeaderFacetChips />
         <FilterBar active={filter} onChange={handleFilterChange} />
       </div>
 
