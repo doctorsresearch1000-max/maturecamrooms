@@ -15,6 +15,8 @@ type HomeDiscoveryProps = {
 };
 
 const PAGE_SIZE = 48;
+/** Max model cards kept in the DOM during infinite scroll (mobile perf). */
+const MAX_MOUNTED_CARDS = 144;
 
 function parseFilter(param: string | null): DiscoveryFilter {
   const allowed: DiscoveryFilter[] = [
@@ -39,6 +41,9 @@ function mergeUnique(existing: CamModel[], incoming: CamModel[]): CamModel[] {
     if (seen.has(m.id)) continue;
     seen.add(m.id);
     next.push(m);
+  }
+  if (next.length > MAX_MOUNTED_CARDS) {
+    return next.slice(next.length - MAX_MOUNTED_CARDS);
   }
   return next;
 }
@@ -258,7 +263,7 @@ export function HomeDiscovery({
                 aria-label="Crawlable pagination"
               >
                 {Array.from(
-                  { length: Math.min(30, Math.ceil(totalModels / PAGE_SIZE)) },
+                  { length: Math.ceil(totalModels / PAGE_SIZE) },
                   (_, i) => i + 1,
                 ).map((p) => (
                   <a

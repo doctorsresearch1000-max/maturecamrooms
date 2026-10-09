@@ -28,6 +28,8 @@ export type CamModel = {
   turnOns?: string;
   lastConnection?: string;
   primaryCategory?: string;
+  /** Brand slug used in the widened catalog fetch pass (e.g. streamate). */
+  catalogBrand?: string;
   score?: number;
   stars?: number;
   recentlyOnline?: boolean;

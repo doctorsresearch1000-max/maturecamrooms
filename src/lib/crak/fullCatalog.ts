@@ -1,17 +1,19 @@
 import { withCache } from "@/lib/crak/cache";
 import { fetchPerformers } from "@/lib/crak/client";
-import { isCrakConfigured, resolveCrakBrands } from "@/lib/crak/config";
+import { isCrakConfigured } from "@/lib/crak/config";
+import {
+  CATALOG_AGE_API_BANDS,
+  CATALOG_FETCH_BACKOFF_MS,
+  CATALOG_FETCH_MAX_RETRIES,
+  CATALOG_MAX_PAGES_PER_QUERY,
+  CATALOG_MAX_TOTAL_CANDIDATES,
+  CATALOG_PAGE_SIZE,
+  CATALOG_SNAPSHOT_CACHE_KEY,
+  CATALOG_SNAPSHOT_TTL_MS,
+  resolveCatalogBrands,
+} from "@/lib/crak/catalogWidenConfig";
 import { normalizePerformer } from "@/lib/crak/normalize";
-import {
-  matureAgeGroupsQuery,
-  matureTagsQuery,
-} from "@/lib/crak/taxonomy";
 import { canonicalProfileSlug } from "@/lib/crak/sitemapCatalog";
-import {
-  CRAK_REQUEST_PAGE_SIZE,
-  SITEMAP_MAX_CANDIDATES,
-  SITEMAP_MAX_PAGES,
-} from "@/lib/seo/config";
 import type { CamModel } from "@/lib/models/types";
 
 export type FullCatalogSnapshot = {
@@ -19,48 +21,82 @@ export type FullCatalogSnapshot = {
   pagesFetched: number;
   rawPerformerRows: number;
   fetchedAt: number;
+  queriesRun: number;
 };
 
-const CATALOG_CACHE_KEY = "full-catalog:mature-offline:v2";
-const CATALOG_TTL_MS = 8 * 60 * 1000;
-
 let lastGoodSnapshot: FullCatalogSnapshot | null = null;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchPerformersWithRetry(
+  params: Parameters<typeof fetchPerformers>[0],
+): Promise<Awaited<ReturnType<typeof fetchPerformers>>> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= CATALOG_FETCH_MAX_RETRIES; attempt++) {
+    try {
+      return await fetchPerformers(params);
+    } catch (err) {
+      lastErr = err;
+      if (attempt < CATALOG_FETCH_MAX_RETRIES) {
+        await sleep(CATALOG_FETCH_BACKOFF_MS * attempt);
+      }
+    }
+  }
+  throw lastErr;
+}
 
 async function loadFullCatalog(): Promise<FullCatalogSnapshot> {
   const bySlug = new Map<string, CamModel>();
   let pagesFetched = 0;
   let rawPerformerRows = 0;
+  let queriesRun = 0;
+  const brands = resolveCatalogBrands();
 
-  for (let page = 1; page <= SITEMAP_MAX_PAGES; page++) {
-    if (bySlug.size >= SITEMAP_MAX_CANDIDATES) break;
+  for (const brand of brands) {
+    for (const ageBand of CATALOG_AGE_API_BANDS) {
+      if (bySlug.size >= CATALOG_MAX_TOTAL_CANDIDATES) break;
+      queriesRun += 1;
 
-    const res = await fetchPerformers({
-      page,
-      size: CRAK_REQUEST_PAGE_SIZE,
-      sorting: "score",
-      live: false,
-      tags: matureTagsQuery(),
-      ages: matureAgeGroupsQuery(),
-      brands: resolveCrakBrands(),
-      gender: "f",
-      lang: "en",
-    });
+      for (let page = 1; page <= CATALOG_MAX_PAGES_PER_QUERY; page++) {
+        if (bySlug.size >= CATALOG_MAX_TOTAL_CANDIDATES) break;
 
-    const batch = res.performers ?? [];
-    pagesFetched += 1;
-    rawPerformerRows += batch.length;
-    if (batch.length === 0) break;
+        const res = await fetchPerformersWithRetry({
+          page,
+          size: CATALOG_PAGE_SIZE,
+          sorting: "score",
+          live: false,
+          ages: ageBand,
+          brands: brand,
+          gender: "f",
+          lang: "en",
+        });
 
-    for (const performer of batch) {
-      if (bySlug.size >= SITEMAP_MAX_CANDIDATES) break;
-      const model = normalizePerformer(performer);
-      if (!model.username || !model.thumbnailUrl) continue;
-      const slug = canonicalProfileSlug(model.username);
-      if (!slug || bySlug.has(slug)) continue;
-      bySlug.set(slug, model);
+        const batch = res.performers ?? [];
+        pagesFetched += 1;
+        rawPerformerRows += batch.length;
+        if (batch.length === 0) break;
+
+        for (const performer of batch) {
+          if (bySlug.size >= CATALOG_MAX_TOTAL_CANDIDATES) break;
+          const model = normalizePerformer(performer, { catalogBrand: brand });
+          if (!model.username || !model.thumbnailUrl) continue;
+          const slug = canonicalProfileSlug(model.username);
+          if (!slug) continue;
+          const existing = bySlug.get(slug);
+          if (!existing) {
+            bySlug.set(slug, model);
+            continue;
+          }
+          if (!existing.catalogBrand && model.catalogBrand) {
+            bySlug.set(slug, { ...existing, catalogBrand: model.catalogBrand });
+          }
+        }
+
+        if (batch.length < CATALOG_PAGE_SIZE) break;
+      }
     }
-
-    if (batch.length < CRAK_REQUEST_PAGE_SIZE) break;
   }
 
   const snapshot: FullCatalogSnapshot = {
@@ -68,6 +104,7 @@ async function loadFullCatalog(): Promise<FullCatalogSnapshot> {
     pagesFetched,
     rawPerformerRows,
     fetchedAt: Date.now(),
+    queriesRun,
   };
   lastGoodSnapshot = snapshot;
   return snapshot;
@@ -81,12 +118,17 @@ export async function getFullCatalog(): Promise<FullCatalogSnapshot> {
         pagesFetched: 0,
         rawPerformerRows: 0,
         fetchedAt: 0,
+        queriesRun: 0,
       }
     );
   }
 
   try {
-    return await withCache(CATALOG_CACHE_KEY, CATALOG_TTL_MS, loadFullCatalog);
+    return await withCache(
+      CATALOG_SNAPSHOT_CACHE_KEY,
+      CATALOG_SNAPSHOT_TTL_MS,
+      loadFullCatalog,
+    );
   } catch (err) {
     if (lastGoodSnapshot) return lastGoodSnapshot;
     throw err;

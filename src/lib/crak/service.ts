@@ -42,7 +42,7 @@ async function fetchNormalized(query: FeedQuery): Promise<CamModel[]> {
   });
 
   return res.performers
-    .map(normalizePerformer)
+    .map((performer) => normalizePerformer(performer))
     .filter((m) => m.thumbnailUrl);
 }
 

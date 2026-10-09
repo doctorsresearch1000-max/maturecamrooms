@@ -2,11 +2,12 @@ import type { CrakPerformer } from "@/lib/crak/types";
 
 export type MatureCategory = "mature" | "milf" | "cougar" | "mom";
 
-const CATEGORY_PRIORITY: MatureCategory[] = [
-  "mature",
-  "milf",
-  "cougar",
+/** Primary niche when multiple apply (most specific first). */
+const PRIMARY_NICHE_ORDER: MatureCategory[] = [
   "mom",
+  "cougar",
+  "milf",
+  "mature",
 ];
 
 function tagBlob(performer: CrakPerformer): string[] {
@@ -31,27 +32,37 @@ export function mapPerformerTaxonomy(performer: CrakPerformer): {
   const categories = new Set<MatureCategory>();
   const age = performer.characteristic?.age;
 
-  if (hasTag(unique, ["milf"])) categories.add("milf");
-  if (hasTag(unique, ["housewife"]) && !hasTag(unique, ["milf"])) {
-    categories.add("milf");
+  if (typeof age === "number" && age >= 40) {
+    categories.add("mature");
   }
-  if (hasTag(unique, ["cougar"])) categories.add("cougar");
-  if (hasTag(unique, ["mom", "mommy", "mama"])) categories.add("mom");
   if (
-    hasTag(unique, ["mature", "gc_40", "gc_50", "50_plus", "granny"]) ||
-    (typeof age === "number" && age >= 50)
+    hasTag(unique, ["mature", "gc_40", "gc_50", "50_plus", "granny"]) &&
+    (typeof age !== "number" || age >= 40)
   ) {
     categories.add("mature");
-  } else if (typeof age === "number" && age >= 40) {
-    categories.add("mature");
+  }
+
+  if (
+    hasTag(unique, ["milf", "housewife"]) ||
+    (typeof age === "number" && age >= 30 && age <= 45)
+  ) {
+    categories.add("milf");
+  }
+
+  if (hasTag(unique, ["cougar"])) {
+    categories.add("cougar");
+  }
+
+  if (hasTag(unique, ["mom", "mommy", "mama"])) {
+    categories.add("mom");
   }
 
   if (categories.size === 0) {
-    if (typeof age === "number" && age >= 35) categories.add("milf");
+    if (typeof age === "number" && age >= 30) categories.add("milf");
     else categories.add("mature");
   }
 
-  const ordered = CATEGORY_PRIORITY.filter((c) => categories.has(c));
+  const ordered = PRIMARY_NICHE_ORDER.filter((c) => categories.has(c));
   const displayTags = unique
     .filter((t) => !t.startsWith("lang") && !t.startsWith("gc_"))
     .slice(0, 12);
@@ -62,10 +73,25 @@ export function mapPerformerTaxonomy(performer: CrakPerformer): {
   };
 }
 
+export function primaryNicheCategory(
+  categories: MatureCategory[],
+): MatureCategory {
+  for (const niche of PRIMARY_NICHE_ORDER) {
+    if (categories.includes(niche)) return niche;
+  }
+  return categories[0] ?? "mature";
+}
+
 export function matureTagsQuery(): string {
   return "milf,mature,housewife";
 }
 
+/** Legacy live-feed narrow ages (runtime discovery only). */
 export function matureAgeGroupsQuery(): string {
   return "gc_40_49,gc_50_plus";
+}
+
+/** Full catalog age bands for widened offline inventory. */
+export function catalogAgeGroupsQuery(): string {
+  return "gc_30_39,gc_40_49,gc_50_59,gc_60_plus";
 }

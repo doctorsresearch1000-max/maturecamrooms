@@ -25,6 +25,7 @@ import {
   ethnicitySlug,
   figureSlug,
   filterModelsByAgeBand,
+  filterModelsByBust,
   filterModelsByEthnicity,
   filterModelsByHair,
   hairSlug,
@@ -181,6 +182,59 @@ export function buildComboLandings(pool: CamModel[], minCount: number): ComboLan
         description: `${matched.length} ${hairLabel.toLowerCase()}-hair mature cam models aged ${age.label}. Watch live or browse offline schedules.`,
         h1: `${hairLabel} hair · ages ${age.label}`,
         intro: `${matched.length} catalog models combine ${hairLabel.toLowerCase()} hair with ages ${age.label}. Countries: ${topCountries(matched).join(", ")}.`,
+        match,
+      });
+    }
+  }
+
+  const ethnicitySlugs = new Map<string, string>();
+  for (const m of pool) {
+    const slug = ethnicitySlug(m);
+    if (slug && m.ethnicity) ethnicitySlugs.set(slug, m.ethnicity);
+  }
+  for (const [ethSlug, ethLabel] of ethnicitySlugs) {
+    for (const age of AGE_FACET_DEFS) {
+      const slug = `ethnicity-${ethSlug}-age-${age.slug}`;
+      const match = (models: CamModel[]) =>
+        filterModelsByAgeBand(
+          filterModelsByEthnicity(models, ethSlug),
+          age.slug,
+        );
+      const matched = match(pool);
+      if (matched.length < minCount) continue;
+      combos.push({
+        slug,
+        href: comboPath(slug),
+        count: matched.length,
+        title: `${ethLabel} · ${age.label} mature webcam models`,
+        description: `${matched.length} ${ethLabel} performers aged ${age.label} in our catalog — live and offline rooms.`,
+        h1: `${ethLabel} cams · ${age.label}`,
+        intro: `${matched.length} ${ethLabel} models are listed in the ${age.label} band${meanAge(matched) ? ` (avg age ${meanAge(matched)})` : ""}. Top countries: ${topCountries(matched).join(", ")}.`,
+        match,
+      });
+    }
+  }
+
+  const bustSlugs = new Map<string, string>();
+  for (const m of pool) {
+    const slug = bustSlug(m);
+    if (slug && m.bustSize) bustSlugs.set(slug, m.bustSize);
+  }
+  for (const [bSlug, bLabel] of bustSlugs) {
+    for (const age of AGE_FACET_DEFS) {
+      const slug = `bust-${bSlug}-age-${age.slug}`;
+      const match = (models: CamModel[]) =>
+        filterModelsByAgeBand(filterModelsByBust(models, bSlug), age.slug);
+      const matched = match(pool);
+      if (matched.length < minCount) continue;
+      combos.push({
+        slug,
+        href: comboPath(slug),
+        count: matched.length,
+        title: `Bust ${bLabel} · ages ${age.label}`,
+        description: `Explore ${matched.length} mature cam profiles with ${bLabel} bust in the ${age.label} age range.`,
+        h1: `${bLabel} bust · ${age.label}`,
+        intro: `${matched.length} catalog entries match bust size ${bLabel} and ages ${age.label}. Languages: ${topLanguages(matched).slice(0, 3).map((l) => l.label).join(", ") || "English"}.`,
         match,
       });
     }

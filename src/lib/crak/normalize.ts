@@ -1,5 +1,8 @@
 import { pickSafeStreamUrl } from "@/lib/crak/allowlist";
-import { mapPerformerTaxonomy } from "@/lib/crak/taxonomy";
+import {
+  mapPerformerTaxonomy,
+  primaryNicheCategory,
+} from "@/lib/crak/taxonomy";
 import { slugify } from "@/lib/seo/slug";
 import type { CrakPerformer } from "@/lib/crak/types";
 import type { CamModel } from "@/lib/models/types";
@@ -18,7 +21,10 @@ function countryCodeFromCharacteristic(country?: string): string | undefined {
   return undefined;
 }
 
-export function normalizePerformer(performer: CrakPerformer): CamModel {
+export function normalizePerformer(
+  performer: CrakPerformer,
+  options?: { catalogBrand?: string },
+): CamModel {
   const { categories, tags } = mapPerformerTaxonomy(performer);
   const rawSlug = performer.nameClean || performer.name;
   const slug = slugify(rawSlug) || rawSlug.trim().toLowerCase();
@@ -67,7 +73,8 @@ export function normalizePerformer(performer: CrakPerformer): CamModel {
     roomUrl: performer.roomUrl,
     score: performer.score ?? performer.systemScore,
     stars: performer.stars,
-    primaryCategory: categories[0],
+    primaryCategory: primaryNicheCategory(categories),
+    catalogBrand: options?.catalogBrand,
     itemId: performer.itemId,
   };
 }
