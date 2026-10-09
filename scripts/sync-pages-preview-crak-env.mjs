@@ -101,18 +101,25 @@ const project = await apiRequest(
   `/accounts/${accountId}/pages/projects/${projectName}`,
 );
 
+const productionConfig = project.deployment_configs?.production ?? {};
 const previewConfig = project.deployment_configs?.preview ?? {};
-const existingVars = previewConfig.env_vars ?? {};
-const env_vars = { ...existingVars };
+const failOpen =
+  productionConfig.fail_open ?? previewConfig.fail_open ?? false;
 
+const env_vars = { ...(previewConfig.env_vars ?? {}) };
 for (const [key, value] of Object.entries(crak)) {
   env_vars[key] = { type: "secret_text", value };
 }
 
 await apiRequest("PATCH", `/accounts/${accountId}/pages/projects/${projectName}`, {
   deployment_configs: {
+    production: {
+      ...productionConfig,
+      fail_open: failOpen,
+    },
     preview: {
       ...previewConfig,
+      fail_open: failOpen,
       env_vars,
     },
   },
