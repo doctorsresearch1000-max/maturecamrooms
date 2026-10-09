@@ -4,6 +4,7 @@ import {
   type DiscoveryFilterId,
 } from "@/lib/models/filterQuery";
 import { browseCatalog } from "@/lib/models/catalogBrowse";
+// browseCatalog used for static snapshot + single live overlay
 import { getModelsPage, searchModels } from "@/lib/models/getModels";
 import type { ModelsResult } from "@/lib/models/types";
 
@@ -120,7 +121,21 @@ export async function GET(request: Request) {
     });
   }
 
+  const origin = new URL(request.url).origin;
+
   if (filterParam) {
+    if (filterParam === "all" || filterParam === "mature" || filterParam === "milf" || filterParam === "cougar") {
+      const result = await browseCatalog({
+        page,
+        limit,
+        liveOnly: false,
+        category: filterParam === "all" ? undefined : filterParam,
+        origin,
+      });
+      return Response.json(result, {
+        status: result.source === "error" ? 503 : 200,
+      });
+    }
     const result = await fetchDiscoveryPage(filterParam, page, limit);
     return Response.json(result, {
       status: result.source === "error" ? 503 : 200,

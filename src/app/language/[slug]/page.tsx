@@ -42,7 +42,6 @@ export default async function LanguagePage({ params }: PageProps) {
     <TaxonomyPageShell
       seo={seo}
       models={models}
-      statusMessage={result.message}
     />
   );
 }

@@ -39,7 +39,6 @@ export default async function HairFacetPage({ params }: PageProps) {
     <TaxonomyPageShell
       seo={seo}
       models={models.length ? models : result.models}
-      statusMessage={result.message}
       emptyMessage="No live performers with this hair color right now."
     />
   );

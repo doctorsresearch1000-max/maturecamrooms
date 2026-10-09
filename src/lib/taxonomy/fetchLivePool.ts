@@ -1,32 +1,13 @@
-import { getModelsPage } from "@/lib/models/getModels";
+import { fetchLiveOverlay } from "@/lib/crak/liveOverlay";
 import type { CamModel } from "@/lib/models/types";
-
-const MENU_SAMPLE_PAGES = 2;
-const PAGE_SIZE = 48;
 
 export async function fetchLiveMenuPool(): Promise<{
   pool: CamModel[];
   feedOk: boolean;
 }> {
-  const pageResults = await Promise.all(
-    Array.from({ length: MENU_SAMPLE_PAGES }, (_, i) =>
-      getModelsPage(i + 1, PAGE_SIZE, { live: true, sorting: "score" }),
-    ),
-  );
-
-  const pool = pageResults.flatMap((p) =>
-    p.source === "crak" ? p.models : [],
-  );
-  const feedOk =
-    pool.length > 0 &&
-    pageResults.some((p) => p.source === "crak") &&
-    !pageResults.some((p) => p.source === "unconfigured");
-  const byId = new Map<string, CamModel>();
-  for (const m of pool) byId.set(m.id, m);
-
-  const unique = [...byId.values()];
+  const { liveModels, feedOk } = await fetchLiveOverlay();
   return {
-    pool: unique,
-    feedOk: feedOk && unique.length > 0,
+    pool: liveModels,
+    feedOk,
   };
 }

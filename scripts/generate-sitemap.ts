@@ -101,8 +101,16 @@ async function main() {
   } = await import("../src/lib/seo/sitemap");
   const { absoluteUrl } = await import("../src/lib/site");
 
+  const { fetchBuildTimeCatalog } = await import("../src/lib/crak/buildTimeCatalog");
+  const { writeCatalogSnapshot } = await import("../src/lib/catalog/snapshotWrite");
+
+  const catalogT0 = performance.now();
+  const built = await fetchBuildTimeCatalog();
+  const snapshotMeta = writeCatalogSnapshot(built.models);
+  const catalogMs = Math.round(performance.now() - catalogT0);
+
   const t0 = performance.now();
-  const pipeline = await runSitemapPipeline();
+  const pipeline = await runSitemapPipeline(built.models);
   const staticAndTaxonomy = [
     ...staticSitemapEntries(),
     ...taxonomyToSitemapEntries(pipeline.bundle),
@@ -161,6 +169,8 @@ async function main() {
         modelUrls: modelEntries.length,
         taxonomyUrls: taxonomyCount,
         catalogModels: pipeline.catalog.models.length,
+        catalogSnapshotMs: catalogMs,
+        nicheReport: snapshotMeta.menu.nicheReport,
         generationMs: elapsedMs,
       },
       null,

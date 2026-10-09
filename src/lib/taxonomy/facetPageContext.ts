@@ -1,8 +1,15 @@
-import { getFullCatalog, sortCatalogBrowse } from "@/lib/crak/fullCatalog";
+import { notFound } from "next/navigation";
 import {
-  facetRedundantWithMature,
-  matureCategoryCanonicalUrl,
-} from "@/lib/taxonomy/facetCanonical";
+  assertFacetIndexable,
+  loadCatalogPage,
+  type FacetKind,
+} from "@/lib/catalog/staticCatalog";
+import { cardToCamModel } from "@/lib/catalog/cardToModel";
+import {
+  applyLiveOverlay,
+  fetchLiveOverlay,
+  sortWithLiveFirst,
+} from "@/lib/crak/liveOverlay";
 import { FACET_SITEMAP_MIN_COUNT } from "@/lib/taxonomy/settings";
 import {
   buildTaxonomySeo,
@@ -10,29 +17,37 @@ import {
 } from "@/lib/seo/taxonomySeo";
 import type { CamModel } from "@/lib/models/types";
 
+const KIND_TO_FACET: Partial<Record<TaxonomyKind, FacetKind>> = {
+  age: "age",
+  ethnicity: "ethnicity",
+  hair: "hair",
+  bust: "bust",
+  figure: "figure",
+  country: "country",
+  language: "language",
+  combo: "combo",
+};
+
 export async function buildFacetTaxonomyContext(
   kind: TaxonomyKind,
   slug: string,
   label: string,
-  filter: (models: CamModel[], slug: string) => CamModel[],
+  _filter?: (models: CamModel[], slug: string) => CamModel[],
 ) {
-  const snapshot = await getFullCatalog();
-  const catalog = snapshot.models;
-  const filtered = filter(catalog, slug);
-  const models = sortCatalogBrowse(filtered).slice(0, 96);
-  const catalogCount = filtered.length;
-
-  let canonicalUrlOverride: string | undefined;
-  if (
-    catalog.length > 0 &&
-    catalogCount > 0 &&
-    facetRedundantWithMature(catalog, filtered.map((m) => m.id))
-  ) {
-    canonicalUrlOverride = matureCategoryCanonicalUrl();
+  const facetKind = KIND_TO_FACET[kind];
+  if (!facetKind) {
+    notFound();
   }
+  const entry = await assertFacetIndexable(facetKind, slug);
+  const catalogCount = entry.count;
+
+  const cards = await loadCatalogPage(facetKind, slug, 1);
+  const { liveUsernames } = await fetchLiveOverlay();
+  const models = sortWithLiveFirst(
+    applyLiveOverlay(cards.map(cardToCamModel), liveUsernames),
+  ).slice(0, 96);
 
   const seo = buildTaxonomySeo(kind, slug, label, catalogCount, {
-    canonicalUrlOverride,
     forceIndexable: catalogCount >= FACET_SITEMAP_MIN_COUNT,
   });
 
@@ -41,11 +56,7 @@ export async function buildFacetTaxonomyContext(
     models,
     result: {
       models,
-      source: catalog.length ? "crak" : "unconfigured",
-      message:
-        catalog.length === 0
-          ? "Catalog is temporarily unavailable."
-          : undefined,
+      source: "crak" as const,
     },
   };
 }

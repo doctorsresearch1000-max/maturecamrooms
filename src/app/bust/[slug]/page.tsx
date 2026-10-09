@@ -38,7 +38,6 @@ export default async function BustFacetPage({ params }: PageProps) {
     <TaxonomyPageShell
       seo={seo}
       models={models.length ? models : result.models}
-      statusMessage={result.message}
       emptyMessage="No performers with this bust size in the catalog."
     />
   );

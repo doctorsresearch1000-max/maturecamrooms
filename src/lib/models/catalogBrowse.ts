@@ -1,9 +1,9 @@
+import { browseStaticCatalog } from "@/lib/catalog/staticCatalog";
 import {
-  getFullCatalog,
-  pageCatalog,
-  sortCatalogBrowse,
-} from "@/lib/crak/fullCatalog";
-import { filterModelsByCategory } from "@/lib/seo/filters";
+  applyLiveOverlay,
+  fetchLiveOverlay,
+  sortWithLiveFirst,
+} from "@/lib/crak/liveOverlay";
 import type { CamModel, ModelsResult } from "@/lib/models/types";
 
 export type CatalogBrowseQuery = {
@@ -11,8 +11,7 @@ export type CatalogBrowseQuery = {
   limit?: number;
   liveOnly?: boolean;
   category?: string;
-  filterFn?: (models: CamModel[], slug: string) => CamModel[];
-  filterSlug?: string;
+  origin?: string;
 };
 
 export async function browseCatalog(
@@ -22,37 +21,38 @@ export async function browseCatalog(
   const page = Math.max(1, query.page ?? 1);
 
   try {
-    const snapshot = await getFullCatalog();
-    if (snapshot.models.length === 0) {
+    if (query.liveOnly) {
+      const { liveModels, feedOk } = await fetchLiveOverlay();
+      const start = (page - 1) * limit;
+      const slice = liveModels.slice(start, start + limit);
       return {
-        models: [],
-        source: "unconfigured",
-        message: "Catalog is temporarily unavailable.",
+        models: slice,
+        source: feedOk ? "crak" : "unconfigured",
         page,
-        hasMore: false,
+        hasMore: start + limit < liveModels.length,
+        total: liveModels.length,
       };
     }
 
-    let pool = snapshot.models;
-    if (query.category) {
-      pool = filterModelsByCategory(pool, query.category);
-    }
-    if (query.filterFn && query.filterSlug) {
-      pool = query.filterFn(pool, query.filterSlug);
-    }
-    if (query.liveOnly) {
-      pool = pool.filter((m) => m.isLive);
-    } else {
-      pool = sortCatalogBrowse(pool);
-    }
+    const staticResult = await browseStaticCatalog({
+      kind: query.category ? "category" : "all",
+      slug: query.category,
+      page,
+      limit,
+      origin: query.origin,
+    });
 
-    const paged = pageCatalog(pool, page, limit);
+    const { liveUsernames } = await fetchLiveOverlay();
+    const models = sortWithLiveFirst(
+      applyLiveOverlay(staticResult.models, liveUsernames),
+    );
+
     return {
-      models: paged.models,
+      models,
       source: "crak",
-      page: paged.page,
-      hasMore: paged.hasMore,
-      total: pool.length,
+      page: staticResult.page,
+      hasMore: staticResult.hasMore,
+      total: staticResult.total,
     };
   } catch (err) {
     return {

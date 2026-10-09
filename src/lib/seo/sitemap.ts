@@ -15,7 +15,6 @@ import {
   canonicalTagUrl,
 } from "@/lib/seo/canonical";
 import { isCrakConfigured } from "@/lib/crak/config";
-import { getFullCatalog } from "@/lib/crak/fullCatalog";
 import type { SitemapCatalogResult } from "@/lib/crak/sitemapCatalog";
 import {
   buildCatalogSitemapBundle,
@@ -36,28 +35,29 @@ export type SitemapPipelineResult = {
   bundle: CatalogSitemapBundle;
 };
 
-export async function runSitemapPipeline(): Promise<SitemapPipelineResult> {
+export async function runSitemapPipeline(
+  catalogModels: CamModel[],
+): Promise<SitemapPipelineResult> {
   if (!isCrakConfigured()) {
     throw new SitemapGenerationError(
       "Sitemap generation failed: Crak API credentials are not configured",
     );
   }
 
-  const snapshot = await getFullCatalog();
-  if (snapshot.models.length === 0) {
+  if (catalogModels.length === 0) {
     throw new SitemapGenerationError(
-      "Sitemap generation failed: Crak returned no performer candidates",
+      "Sitemap generation failed: empty catalog",
     );
   }
 
   const catalog: SitemapCatalogResult = {
-    models: snapshot.models,
-    pagesFetched: snapshot.pagesFetched,
-    rawPerformerRows: snapshot.rawPerformerRows,
+    models: catalogModels,
+    pagesFetched: 0,
+    rawPerformerRows: catalogModels.length,
   };
 
-  const bundle = buildCatalogSitemapBundle(snapshot.models);
-  const indexableModels = snapshot.models.filter(
+  const bundle = buildCatalogSitemapBundle(catalogModels);
+  const indexableModels = catalogModels.filter(
     (m) => m.username && m.thumbnailUrl,
   );
 
@@ -90,11 +90,6 @@ export function staticSitemapEntries(): MetadataRoute.Sitemap {
     },
     ...legal,
   ];
-}
-
-export async function fetchIndexableModelsForSitemap(): Promise<CamModel[]> {
-  const pipeline = await runSitemapPipeline();
-  return pipeline.indexableModels;
 }
 
 export function modelsToSitemapEntries(
@@ -209,9 +204,4 @@ export function taxonomyToSitemapEntries(
   }
 
   return entries;
-}
-
-export async function fetchTaxonomySitemapEntries(): Promise<MetadataRoute.Sitemap> {
-  const pipeline = await runSitemapPipeline();
-  return taxonomyToSitemapEntries(pipeline.bundle);
 }

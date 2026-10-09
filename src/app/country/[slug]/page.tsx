@@ -45,7 +45,6 @@ export default async function CountryPage({ params }: PageProps) {
     <TaxonomyPageShell
       seo={seo}
       models={models.length ? models : result.models}
-      statusMessage={result.message}
       emptyMessage="No live performers from this country right now."
     />
   );

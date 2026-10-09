@@ -42,7 +42,9 @@ async function main() {
   const { canonicalProfileSlug } = await import("../src/lib/crak/sitemapCatalog");
 
   const t0 = performance.now();
-  const pipeline = await runSitemapPipeline();
+  const { fetchBuildTimeCatalog } = await import("../src/lib/crak/buildTimeCatalog");
+  const built = await fetchBuildTimeCatalog();
+  const pipeline = await runSitemapPipeline(built.models);
   const staticEntries = staticSitemapEntries();
   const taxonomyEntries = taxonomyToSitemapEntries(pipeline.bundle);
   const modelEntries = modelsToSitemapEntries(pipeline.indexableModels);

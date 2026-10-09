@@ -1,28 +1,17 @@
-import { getFullCatalog, pageCatalog, sortCatalogBrowse } from "../src/lib/crak/fullCatalog.ts";
-import { buildCatalogMenuInventory } from "../src/lib/taxonomy/catalogInventory.ts";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-const { models } = await getFullCatalog();
-const menu = buildCatalogMenuInventory(models, models.length > 0);
-let accumulated = 0;
-for (let page = 1; page <= 5; page++) {
-  const p = pageCatalog(sortCatalogBrowse(models), page, 48);
-  accumulated += p.models.length;
-}
+const root = resolve(process.cwd(), "public/data/catalog/all");
+const p1 = JSON.parse(readFileSync(resolve(root, "page-1.json"), "utf8"));
+const p3 = JSON.parse(readFileSync(resolve(root, "page-3.json"), "utf8"));
+const overlap = p1.some((m) => p3.some((x) => x.id === m.id));
 console.log(
   JSON.stringify(
     {
-      catalogModels: models.length,
-      fivePagesAccumulated: accumulated,
-      menuFacets: {
-        niches: menu.niches,
-        ageBands: menu.ageBands,
-        countries: menu.countries.length,
-        ethnicities: menu.ethnicities.length,
-        hairs: menu.hairs.length,
-        busts: menu.busts.length,
-        figures: menu.figures.length,
-        languages: menu.languages.length,
-      },
+      page3Models: p3.length,
+      page3FirstUsername: p3[0]?.username,
+      page1FirstUsername: p1[0]?.username,
+      distinctFromPage1: !overlap,
     },
     null,
     2,

@@ -46,7 +46,6 @@ export default async function AgeFacetPage({ params }: PageProps) {
     <TaxonomyPageShell
       seo={seo}
       models={models.length ? models : result.models}
-      statusMessage={result.message}
       emptyMessage="No live performers in this age group right now."
     />
   );
