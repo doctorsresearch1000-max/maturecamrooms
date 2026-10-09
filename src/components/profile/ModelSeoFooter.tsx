@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORY_DISPLAY, SITE_CATEGORIES } from "@/lib/seo/config";
+import { CATEGORY_DISPLAY, NAV_SITE_CATEGORIES } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
 import type { CamModel } from "@/lib/models/types";
 import type { ModelSEO } from "@/lib/seo/modelSeo";
@@ -11,7 +11,7 @@ type ModelSeoFooterProps = {
 };
 
 export function ModelSeoFooter({ model, related, seo }: ModelSeoFooterProps) {
-  const categoryLinks = SITE_CATEGORIES.filter((cat) =>
+  const categoryLinks = NAV_SITE_CATEGORIES.filter((cat) =>
     seo.taxonomyIndexability.indexableCategories.has(cat),
   );
 

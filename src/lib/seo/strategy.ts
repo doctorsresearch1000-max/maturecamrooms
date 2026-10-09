@@ -3,9 +3,9 @@
  * compliance hooks. Reuses numeric thresholds from `config.ts`.
  */
 import {
-  SITE_CATEGORIES,
+  NAV_SITE_CATEGORIES,
   TAXONOMY_MIN_MODEL_COUNT,
-  type SiteCategory,
+  type NavSiteCategory,
 } from "@/lib/seo/config";
 
 /** Primary entity: one canonical profile URL per performer. */
@@ -23,7 +23,8 @@ export const SECONDARY_KEYWORD_ROLES = {
 export type SecondaryKeywordRole = keyof typeof SECONDARY_KEYWORD_ROLES;
 
 /** Site-owned category slugs — never duplicate as indexable `/tag/{slug}` hubs. */
-export const CATEGORY_OWNED_SLUGS: readonly SiteCategory[] = SITE_CATEGORIES;
+export const CATEGORY_OWNED_SLUGS: readonly NavSiteCategory[] =
+  NAV_SITE_CATEGORIES;
 
 /**
  * Curated attribute hub allowlist (`/tag/{slug}`).

@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TaxonomyPageShell } from "@/components/seo/TaxonomyPageShell";
+import { assertCategoryPageOrRedirect } from "@/lib/category/resolveCategory";
 import {
-  categoryManifestEntry,
-  getCatalogManifest,
   getCatalogMenuSnapshot,
   loadCatalogPage,
 } from "@/lib/catalog/staticCatalog";
 import { cardToCamModel } from "@/lib/catalog/cardToModel";
-import {
-  applyLiveOverlay,
-  fetchLiveOverlay,
-  sortWithLiveFirst,
-} from "@/lib/crak/liveOverlay";
+import { fetchLiveOverlay, mergeCatalogWithLive } from "@/lib/crak/liveOverlay";
 import { CATEGORY_DISPLAY, SITE_CATEGORIES, type SiteCategory } from "@/lib/seo/config";
 import { slugify } from "@/lib/seo/slug";
 import { absoluteUrl } from "@/lib/site";
@@ -29,18 +24,12 @@ type PageProps = {
 };
 
 async function loadCategoryModels(tag: string) {
-  const manifest = await getCatalogManifest();
-  const entry = categoryManifestEntry(manifest, tag);
-  if (!entry || entry.count < FACET_SITEMAP_MIN_COUNT || entry.pages < 1) {
-    notFound();
-  }
+  const { catalogCount } = await assertCategoryPageOrRedirect(tag);
   const cards = await loadCatalogPage("category", tag, 1);
-  const { liveUsernames } = await fetchLiveOverlay();
+  const overlay = await fetchLiveOverlay();
   return {
-    models: sortWithLiveFirst(
-      applyLiveOverlay(cards.map(cardToCamModel), liveUsernames),
-    ),
-    catalogCount: entry.count,
+    models: mergeCatalogWithLive(cards.map(cardToCamModel), overlay),
+    catalogCount,
   };
 }
 
@@ -53,8 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { catalogCount } = await loadCategoryModels(tag);
   const label = CATEGORY_DISPLAY[tag as SiteCategory];
   const menu = await getCatalogMenuSnapshot();
-  const nicheCanonicalTo = menu.menu.nicheCanonicalTo;
-  const canonicalPath = nicheCanonicalHref(tag, nicheCanonicalTo);
+  const canonicalPath = nicheCanonicalHref(tag, menu.menu.nicheCanonicalTo);
   const seo = buildTaxonomySeo("category", tag, label, catalogCount, {
     canonicalUrlOverride: canonicalPath
       ? absoluteUrl(canonicalPath)

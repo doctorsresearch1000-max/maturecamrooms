@@ -4,7 +4,7 @@ import { HomeDiscovery } from "@/components/discovery/HomeDiscovery";
 import { ModelGridSkeleton } from "@/components/cams/ModelCardSkeleton";
 import { HomeJsonLd } from "@/components/seo/HomeJsonLd";
 import { getFeaturedModels } from "@/lib/models/getModels";
-import { CATEGORY_DISPLAY, SITE_CATEGORIES } from "@/lib/seo/config";
+import { CATEGORY_DISPLAY, NAV_SITE_CATEGORIES } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
 import { siteConfig } from "@/lib/site";
 
@@ -33,7 +33,7 @@ export default async function HomePage() {
             Browse {siteConfig.name} categories without JavaScript:
           </p>
           <ul className="flex flex-wrap gap-2">
-            {SITE_CATEGORIES.map((cat) => (
+            {NAV_SITE_CATEGORIES.map((cat) => (
               <li key={cat}>
                 <a
                   href={categoryPath(cat)}

@@ -2,8 +2,8 @@ import { getCatalogMenuSnapshot } from "@/lib/catalog/staticCatalog";
 import { fetchLiveOverlay } from "@/lib/crak/liveOverlay";
 import {
   CATEGORY_DISPLAY,
-  SITE_CATEGORIES,
-  type SiteCategory,
+  NAV_SITE_CATEGORIES,
+  type NavSiteCategory,
 } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
 
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     const categories = catalogOk
       ? inventory.niches
-      : SITE_CATEGORIES.map((slug: SiteCategory) => ({
+      : NAV_SITE_CATEGORIES.map((slug: NavSiteCategory) => ({
           slug,
           label: CATEGORY_DISPLAY[slug],
           href: categoryPath(slug),
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       feedOk: false,
       liveCount: undefined,
       catalogOk: false,
-      categories: SITE_CATEGORIES.map((slug: SiteCategory) => ({
+      categories: NAV_SITE_CATEGORIES.map((slug: NavSiteCategory) => ({
         slug,
         label: CATEGORY_DISPLAY[slug],
         href: categoryPath(slug),

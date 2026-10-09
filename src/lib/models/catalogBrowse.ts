@@ -1,9 +1,5 @@
 import { browseStaticCatalog } from "@/lib/catalog/staticCatalog";
-import {
-  applyLiveOverlay,
-  fetchLiveOverlay,
-  sortWithLiveFirst,
-} from "@/lib/crak/liveOverlay";
+import { fetchLiveOverlay, mergeCatalogWithLive } from "@/lib/crak/liveOverlay";
 import type { CamModel, ModelsResult } from "@/lib/models/types";
 
 export type CatalogBrowseQuery = {
@@ -21,16 +17,17 @@ export async function browseCatalog(
   const page = Math.max(1, query.page ?? 1);
 
   try {
+    const overlay = await fetchLiveOverlay();
+
     if (query.liveOnly) {
-      const { liveModels, feedOk } = await fetchLiveOverlay();
       const start = (page - 1) * limit;
-      const slice = liveModels.slice(start, start + limit);
+      const slice = overlay.liveModels.slice(start, start + limit);
       return {
         models: slice,
-        source: feedOk ? "crak" : "unconfigured",
+        source: overlay.feedOk ? "crak" : "unconfigured",
         page,
-        hasMore: start + limit < liveModels.length,
-        total: liveModels.length,
+        hasMore: overlay.feedOk && start + limit < overlay.liveModels.length,
+        total: overlay.feedOk ? overlay.liveModels.length : 0,
       };
     }
 
@@ -42,10 +39,7 @@ export async function browseCatalog(
       origin: query.origin,
     });
 
-    const { liveUsernames } = await fetchLiveOverlay();
-    const models = sortWithLiveFirst(
-      applyLiveOverlay(staticResult.models, liveUsernames),
-    );
+    const models = mergeCatalogWithLive(staticResult.models, overlay);
 
     return {
       models,

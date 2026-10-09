@@ -24,7 +24,6 @@ function parseFilter(param: string | null): DiscoveryFilter {
     "all",
     "mature",
     "milf",
-    "cougar",
     "popular",
     "new",
   ];

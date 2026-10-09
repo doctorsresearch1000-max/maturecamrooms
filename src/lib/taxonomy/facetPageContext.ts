@@ -5,11 +5,7 @@ import {
   type FacetKind,
 } from "@/lib/catalog/staticCatalog";
 import { cardToCamModel } from "@/lib/catalog/cardToModel";
-import {
-  applyLiveOverlay,
-  fetchLiveOverlay,
-  sortWithLiveFirst,
-} from "@/lib/crak/liveOverlay";
+import { fetchLiveOverlay, mergeCatalogWithLive } from "@/lib/crak/liveOverlay";
 import { FACET_SITEMAP_MIN_COUNT } from "@/lib/taxonomy/settings";
 import {
   buildTaxonomySeo,
@@ -42,9 +38,10 @@ export async function buildFacetTaxonomyContext(
   const catalogCount = entry.count;
 
   const cards = await loadCatalogPage(facetKind, slug, 1);
-  const { liveUsernames } = await fetchLiveOverlay();
-  const models = sortWithLiveFirst(
-    applyLiveOverlay(cards.map(cardToCamModel), liveUsernames),
+  const overlay = await fetchLiveOverlay();
+  const models = mergeCatalogWithLive(
+    cards.map(cardToCamModel),
+    overlay,
   ).slice(0, 96);
 
   const seo = buildTaxonomySeo(kind, slug, label, catalogCount, {

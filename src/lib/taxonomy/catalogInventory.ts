@@ -1,8 +1,8 @@
 import { filterModelsByCategory } from "@/lib/seo/filters";
 import {
   CATEGORY_DISPLAY,
-  SITE_CATEGORIES,
-  type SiteCategory,
+  NAV_SITE_CATEGORIES,
+  type NavSiteCategory,
 } from "@/lib/seo/config";
 import {
   agePath,
@@ -257,14 +257,14 @@ export function buildCatalogMenuInventory(
 
   const niches: MenuFacetItem[] = [];
   if (catalogOk) {
-    for (const slug of SITE_CATEGORIES) {
+    for (const slug of NAV_SITE_CATEGORIES) {
       const count = countFacet(pool, slug, filterModelsByCategory);
       if (count < menuMin) continue;
       const canon = nicheCanonicalHref(slug, nicheCanonicalTo);
       if (canon) continue;
       niches.push({
         slug,
-        label: CATEGORY_DISPLAY[slug as SiteCategory],
+        label: CATEGORY_DISPLAY[slug as NavSiteCategory],
         href: categoryPath(slug),
         count,
         icon: facetIcon("niche", slug),

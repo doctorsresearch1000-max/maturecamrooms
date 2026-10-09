@@ -1,4 +1,4 @@
-import { CATEGORY_DISPLAY, SITE_CATEGORIES } from "@/lib/seo/config";
+import { CATEGORY_DISPLAY, NAV_SITE_CATEGORIES } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
 
 export type DrawerNavLink = {
@@ -27,7 +27,7 @@ export const DRAWER_PRIMARY_LINKS: DrawerNavLink[] = [
 export function nicheCategoryLinks(
   counts: Record<string, number>,
 ): DrawerNavLink[] {
-  return SITE_CATEGORIES.map((slug) => ({
+  return NAV_SITE_CATEGORIES.map((slug) => ({
     id: slug,
     label: CATEGORY_DISPLAY[slug],
     href: categoryPath(slug),
@@ -38,12 +38,9 @@ export function nicheCategoryLinks(
 export const DRAWER_AGE_LINKS: DrawerNavLink[] = [
   { id: "age-milf", label: "30s · MILF", href: "/category/milf" },
   { id: "age-mature", label: "40+ · Mature", href: "/category/mature" },
-  { id: "age-cougar", label: "45+ · Cougar", href: "/category/cougar" },
-  { id: "age-mom", label: "Mom & housewife", href: "/category/mom" },
 ];
 
 export const DRAWER_POPULAR_LINKS: DrawerNavLink[] = [
   { id: "f-milf", label: "MILF cams", href: "/?filter=milf" },
-  { id: "f-cougar", label: "Cougar cams", href: "/?filter=cougar" },
   { id: "f-mature", label: "Mature cams", href: "/?filter=mature" },
 ];

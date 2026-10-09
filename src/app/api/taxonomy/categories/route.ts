@@ -1,8 +1,8 @@
 import { getModelsPage } from "@/lib/models/getModels";
 import {
   CATEGORY_DISPLAY,
-  SITE_CATEGORIES,
-  type SiteCategory,
+  NAV_SITE_CATEGORIES,
+  type NavSiteCategory,
 } from "@/lib/seo/config";
 import { filterModelsByCategory } from "@/lib/seo/filters";
 import { categoryPath } from "@/lib/seo/slug";
@@ -16,7 +16,7 @@ export async function GET() {
   ]);
 
   const pool = pages.flatMap((p) => p.models);
-  const categories = SITE_CATEGORIES.map((slug: SiteCategory) => {
+  const categories = NAV_SITE_CATEGORIES.map((slug: NavSiteCategory) => {
     const count = filterModelsByCategory(pool, slug).length;
     return {
       slug,

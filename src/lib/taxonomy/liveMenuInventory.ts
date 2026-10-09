@@ -1,5 +1,11 @@
 import { filterModelsByCategory } from "@/lib/seo/filters";
-import { CATEGORY_DISPLAY, SITE_CATEGORIES, type SiteCategory } from "@/lib/seo/config";
+import {
+  CATEGORY_DISPLAY,
+  NAV_SITE_CATEGORIES,
+  SITE_CATEGORIES,
+  type NavSiteCategory,
+  type SiteCategory,
+} from "@/lib/seo/config";
 import { categoryPath, countryPath } from "@/lib/seo/slug";
 import {
   agePath,
@@ -113,13 +119,13 @@ export function buildLiveMenuInventory(
 
   const niches: MenuFacetItem[] = [];
   if (feedOk) {
-    for (const slug of SITE_CATEGORIES) {
+    for (const slug of NAV_SITE_CATEGORIES) {
       const count = countFacet(livePool, slug, filterModelsByCategory);
       if (count < FACET_MIN_MODEL_COUNT) continue;
       if (nicheCanonicalTo[slug]) continue;
       niches.push({
         slug,
-        label: CATEGORY_DISPLAY[slug as SiteCategory],
+        label: CATEGORY_DISPLAY[slug as NavSiteCategory],
         href: categoryPath(slug),
         count,
         icon: facetIcon("niche", slug),

@@ -20,7 +20,7 @@ async function fetchDiscoveryPage(
     return { ...result, effectiveFilter: "all" };
   }
 
-  const categoryFilters = ["mature", "milf", "cougar"] as const;
+  const categoryFilters = ["mature", "milf"] as const;
   if (categoryFilters.includes(filter as (typeof categoryFilters)[number])) {
     const result = await browseCatalog({
       page,
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
   const origin = new URL(request.url).origin;
 
   if (filterParam) {
-    if (filterParam === "all" || filterParam === "mature" || filterParam === "milf" || filterParam === "cougar") {
+    if (filterParam === "all" || filterParam === "mature" || filterParam === "milf") {
       const result = await browseCatalog({
         page,
         limit,
