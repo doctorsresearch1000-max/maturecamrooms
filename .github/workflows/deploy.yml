@@ -80,6 +80,6 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # account_id is pinned in wrangler.toml (MatureCamRooms). Do not pass
-          # CLOUDFLARE_ACCOUNT_ID from secrets — a mismatched ID causes API 10000.
+          # MatureCamRooms account (public id). Pages wrangler.toml must not set account_id.
+          accountId: b1a465896521acc54d57f28ce75cc717
           command: pages deploy .vercel/output/static --project-name=maturecamrooms --branch=${{ github.ref_name }}
