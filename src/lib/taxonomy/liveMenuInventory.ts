@@ -258,7 +258,13 @@ export function nicheCanonicalHref(
   slug: string,
   nicheCanonicalTo: Record<string, string>,
 ): string | undefined {
-  const primary = nicheCanonicalTo[slug];
-  if (!primary) return undefined;
-  return categoryPath(primary);
+  let target = slug;
+  const seen = new Set<string>();
+  while (nicheCanonicalTo[target]) {
+    if (seen.has(target)) break;
+    seen.add(target);
+    target = nicheCanonicalTo[target];
+  }
+  if (target === slug) return undefined;
+  return categoryPath(target);
 }
