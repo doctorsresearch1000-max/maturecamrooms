@@ -2,54 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { DrawerCategoryNav } from "@/components/layout/DrawerCategoryNav";
+import { DrawerMenuNav } from "@/components/layout/DrawerMenuNav";
 import { useShell } from "@/components/layout/ShellContext";
 import { Drawer } from "@/components/ui/Drawer";
 import { siteConfig } from "@/lib/site";
 
-const PERSONAL = [
-  { href: "/#favorites", label: "Favorites" },
-  { href: "/?filter=new", label: "History" },
-];
-
-function SidebarNav({
-  onNavigate,
-  favoritesCount,
-}: {
-  onNavigate?: () => void;
-  favoritesCount?: number;
-}) {
+function SidebarNavDesktop() {
   return (
-    <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-3 text-sm lg:gap-6 lg:p-4">
-      <div className="lg:hidden">
-        <p className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-          Your account
-        </p>
-        <ul className="space-y-0.5">
-          {PERSONAL.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                className="flex min-h-[44px] items-center justify-between rounded-lg px-3 font-medium text-white transition hover:bg-surface-hover"
-              >
-                {item.label}
-                {item.label === "Favorites" &&
-                favoritesCount &&
-                favoritesCount > 0 ? (
-                  <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-semibold text-accent">
-                    {favoritesCount}
-                  </span>
-                ) : null}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <DrawerCategoryNav onNavigate={onNavigate} />
-
-      <div className="hidden lg:block">
+    <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-sm lg:gap-6 lg:p-4">
+      <div>
         <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
           Quick links
         </p>
@@ -57,7 +18,6 @@ function SidebarNav({
           <li>
             <Link
               href="/"
-              onClick={onNavigate}
               className="flex min-h-[44px] items-center rounded-md px-3 font-medium text-foreground hover:bg-surface-hover"
             >
               Live now
@@ -66,7 +26,6 @@ function SidebarNav({
           <li>
             <Link
               href="/?filter=all"
-              onClick={onNavigate}
               className="flex min-h-[44px] items-center rounded-md px-3 font-medium text-foreground hover:bg-surface-hover"
             >
               All models
@@ -84,59 +43,45 @@ export function SidebarDesktop() {
       className="hidden w-56 shrink-0 border-r border-border bg-surface lg:block"
       aria-label="Filters and categories"
     >
-      <SidebarNav />
+      <SidebarNavDesktop />
     </aside>
   );
 }
 
 export function SidebarMobile() {
-  const { drawerOpen, setDrawerOpen, favorites } = useShell();
+  const { drawerOpen, setDrawerOpen, favorites, setSearchOpen } = useShell();
+  const close = () => setDrawerOpen(false);
+
   return (
     <Drawer
       open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
+      onClose={close}
       ariaLabel="Navigation menu"
     >
-      <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-        <Link
-          href="/"
-          className="min-w-0 flex-1"
-          onClick={() => setDrawerOpen(false)}
+      <div className="flex items-center gap-2 border-b border-white/[0.08] bg-[var(--header-bg)] px-2 py-2.5">
+        <button
+          type="button"
+          onClick={close}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/[0.05]"
+          aria-label="Close menu"
         >
+          ✕
+        </button>
+        <Link href="/" className="min-w-0 flex-1" onClick={close}>
           <Image
             src="/maturecamrooms-logo.png"
             alt={siteConfig.name}
             width={747}
             height={59}
-            className="h-7 w-auto max-w-[11rem]"
+            className="mx-auto h-7 w-auto max-w-[10.5rem]"
           />
         </Link>
-        <button
-          type="button"
-          onClick={() => setDrawerOpen(false)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-hover"
-          aria-label="Close menu"
-        >
-          ✕
-        </button>
+        <span className="w-10 shrink-0" aria-hidden />
       </div>
-      <div className="grid grid-cols-2 gap-2 border-b border-border px-3 py-2.5">
-        <button
-          type="button"
-          className="min-h-[40px] rounded-lg border border-border bg-surface-elevated text-sm font-semibold text-white"
-        >
-          Login
-        </button>
-        <button
-          type="button"
-          className="min-h-[40px] rounded-lg bg-accent text-sm font-semibold text-white"
-        >
-          Join free
-        </button>
-      </div>
-      <SidebarNav
-        onNavigate={() => setDrawerOpen(false)}
+      <DrawerMenuNav
         favoritesCount={favorites.size}
+        onNavigate={close}
+        onOpenSearch={() => setSearchOpen(true)}
       />
     </Drawer>
   );

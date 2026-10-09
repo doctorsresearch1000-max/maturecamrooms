@@ -13,7 +13,7 @@ type HomeDiscoveryProps = {
   unconfigured?: boolean;
 };
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 48;
 
 function parseFilter(param: string | null): DiscoveryFilter {
   const allowed: DiscoveryFilter[] = [
@@ -62,6 +62,7 @@ export function HomeDiscovery({
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
+  const [feedBroadened, setFeedBroadened] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const inflightRef = useRef(false);
   const initialHydrated = useRef(false);
@@ -76,9 +77,12 @@ export function HomeDiscovery({
         `/api/models?page=${targetPage}&limit=${PAGE_SIZE}&filter=${activeFilter}`,
       );
       const data = (await res.json()) as ModelsResult;
+      const batch = data.models ?? [];
       return {
-        models: data.models ?? [],
-        hasMore: Boolean(data.hasMore) && (data.models?.length ?? 0) > 0,
+        models: batch,
+        hasMore: Boolean(data.hasMore) && batch.length > 0,
+        broadened: Boolean(data.broadened),
+        effectiveFilter: data.effectiveFilter,
       };
     },
     [],
@@ -97,11 +101,13 @@ export function HomeDiscovery({
     let cancelled = false;
     setFilterLoading(true);
     setPage(1);
+    setFeedBroadened(false);
     fetchPage(1, filter)
-      .then(({ models, hasMore: more }) => {
+      .then(({ models, hasMore: more, broadened }) => {
         if (cancelled) return;
         setCatalog(models);
         setHasMore(more);
+        setFeedBroadened(Boolean(broadened));
       })
       .catch(() => {
         if (!cancelled) {
@@ -125,10 +131,12 @@ export function HomeDiscovery({
     setLoadingMore(true);
     const nextPage = page + 1;
     try {
-      const { models: batch, hasMore: more } = await fetchPage(nextPage, filter);
+      const { models: batch, hasMore: more, broadened } =
+        await fetchPage(nextPage, filter);
       setCatalog((prev) => mergeUnique(prev, batch));
       setPage(nextPage);
       setHasMore(more);
+      if (broadened) setFeedBroadened(true);
     } catch {
       setHasMore(false);
     } finally {
@@ -219,6 +227,12 @@ export function HomeDiscovery({
             className="mt-2 sm:mt-6"
             aria-labelledby="discovery-grid-title"
           >
+            {feedBroadened && filter !== "live" && filter !== "all" ? (
+              <p className="mb-2 rounded-md border border-white/[0.08] bg-surface-elevated px-3 py-2 text-xs text-text-secondary">
+                Few {filter} models live right now — we&apos;re showing related
+                mature performers so you can keep browsing.
+              </p>
+            ) : null}
             <h2
               id="discovery-grid-title"
               className="mb-1.5 hidden items-center gap-1.5 text-sm font-semibold text-foreground sm:mb-3 sm:flex sm:gap-2 sm:text-lg"

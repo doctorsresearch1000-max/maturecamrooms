@@ -41,6 +41,7 @@ export type ModelsResult = {
   source: "crak" | "unconfigured" | "error";
   message?: string;
   broadened?: boolean;
+  effectiveFilter?: string;
   page?: number;
   hasMore?: boolean;
 };

@@ -28,7 +28,7 @@ export function Drawer({
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
-        className={`fixed top-0 z-[70] flex h-full w-[min(100%,18.5rem)] flex-col border-border bg-surface shadow-2xl transition-transform duration-drawer sm:w-[min(100%,20rem)] ${
+        className={`fixed top-0 z-[70] flex h-full w-[min(100%,21rem)] flex-col border-white/[0.08] bg-[var(--header-bg)] shadow-[4px_0_32px_rgba(0,0,0,0.55)] transition-transform duration-drawer sm:w-[min(88vw,21rem)] ${
           side === "left" ? "left-0 border-r" : "right-0 border-l"
         } ${open ? "translate-x-0" : side === "left" ? "-translate-x-full" : "translate-x-full"}`}
       >

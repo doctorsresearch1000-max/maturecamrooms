@@ -31,3 +31,24 @@ export function discoveryFilterToQuery(
       return { live: true, sorting: "score" };
   }
 }
+
+/** When a niche tag page is empty, widen the CRAK query in this order. */
+export function discoveryFilterFallbackChain(
+  filter: DiscoveryFilterId | string,
+): DiscoveryFilterId[] {
+  switch (filter) {
+    case "milf":
+      return ["milf", "cougar", "mature", "live"];
+    case "cougar":
+      return ["cougar", "mature", "milf", "live"];
+    case "mature":
+      return ["mature", "milf", "live"];
+    case "new":
+    case "popular":
+      return [filter as DiscoveryFilterId, "live", "all"];
+    case "all":
+      return ["all"];
+    default:
+      return ["live", "all"];
+  }
+}
