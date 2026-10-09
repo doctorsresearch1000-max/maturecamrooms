@@ -14,7 +14,9 @@ export async function fetchLiveMenuPool(): Promise<{
     ),
   );
 
-  const feedOk = pageResults.every((p) => p.source === "crak");
+  const feedOk =
+    pageResults.some((p) => p.source === "crak") &&
+    !pageResults.some((p) => p.source === "error" || p.source === "unconfigured");
   const pool = pageResults.flatMap((p) => p.models);
   const byId = new Map<string, CamModel>();
   for (const m of pool) byId.set(m.id, m);
