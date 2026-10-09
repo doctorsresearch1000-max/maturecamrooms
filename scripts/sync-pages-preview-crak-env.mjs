@@ -1,7 +1,9 @@
 /**
- * Ensures CRAK_* exist in Cloudflare Pages Preview deployment_configs.env_vars
- * so branch previews (wrangler pages deploy --branch=...) can call CRAK at runtime.
- * GitHub Actions secrets are build-time only unless mirrored here.
+ * Mirrors CRAK_* from GitHub Actions into Cloudflare Pages deployment_configs
+ * for Production and Preview. Required for branch previews; also restores
+ * Production if a prior PATCH echoed redacted env_vars from GET.
+ *
+ * Never spread env_vars from GET — secret values are omitted and would wipe keys.
  */
 import https from "node:https";
 
@@ -11,7 +13,7 @@ const projectName = process.env.CLOUDFLARE_PAGES_PROJECT ?? "maturecamrooms";
 const apiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();
 
 if (!apiToken) {
-  console.log("sync-pages-preview-crak-env: skip (no CLOUDFLARE_API_TOKEN)");
+  console.log("sync-pages-crak-env: skip (no CLOUDFLARE_API_TOKEN)");
   process.exit(0);
 }
 
@@ -92,7 +94,7 @@ function apiRequest(method, path, body) {
 
 const crak = pickCrakEnv();
 if (!crak) {
-  console.log("sync-pages-preview-crak-env: skip (CRAK_API_KEY + CRAK_TOKEN missing)");
+  console.log("sync-pages-crak-env: skip (CRAK_API_KEY + CRAK_TOKEN missing)");
   process.exit(0);
 }
 
@@ -106,25 +108,20 @@ const previewConfig = project.deployment_configs?.preview ?? {};
 const failOpen =
   productionConfig.fail_open ?? previewConfig.fail_open ?? false;
 
-const env_vars = { ...(previewConfig.env_vars ?? {}) };
-for (const [key, value] of Object.entries(crak)) {
-  env_vars[key] = { type: "secret_text", value };
-}
+const env_vars = Object.fromEntries(
+  Object.entries(crak).map(([key, value]) => [
+    key,
+    { type: "secret_text", value },
+  ]),
+);
 
 await apiRequest("PATCH", `/accounts/${accountId}/pages/projects/${projectName}`, {
   deployment_configs: {
-    production: {
-      ...productionConfig,
-      fail_open: failOpen,
-    },
-    preview: {
-      ...previewConfig,
-      fail_open: failOpen,
-      env_vars,
-    },
+    production: { fail_open: failOpen, env_vars },
+    preview: { fail_open: failOpen, env_vars },
   },
 });
 
 console.log(
-  `sync-pages-preview-crak-env: updated Preview env_vars for ${projectName} (${Object.keys(crak).join(", ")})`,
+  `sync-pages-crak-env: set CRAK env_vars on Production + Preview for ${projectName} (${Object.keys(crak).join(", ")})`,
 );

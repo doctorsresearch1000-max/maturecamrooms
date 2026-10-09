@@ -73,7 +73,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Sync CRAK to Cloudflare Pages Preview runtime
+      - name: Sync CRAK to Cloudflare Pages runtime (Production + Preview)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: b1a465896521acc54d57f28ce75cc717
