@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ModelGrid } from "@/components/cams/ModelGrid";
 import { ModelCardSkeleton } from "@/components/cams/ModelCardSkeleton";
 import { FilterBar, type DiscoveryFilter } from "@/components/discovery/FilterBar";
@@ -14,34 +14,6 @@ type HomeDiscoveryProps = {
 };
 
 const PAGE_SIZE = 24;
-
-function applyFilter(models: CamModel[], filter: DiscoveryFilter): CamModel[] {
-  switch (filter) {
-    case "live":
-      return models.filter((m) => m.isLive);
-    case "mature":
-      return models.filter((m) =>
-        m.tags.some((t) => t.toLowerCase() === "mature"),
-      );
-    case "milf":
-      return models.filter((m) =>
-        m.tags.some((t) => t.toLowerCase() === "milf"),
-      );
-    case "cougar":
-      return models.filter((m) =>
-        m.tags.some((t) => t.toLowerCase() === "cougar"),
-      );
-    case "popular":
-      return [...models].sort(
-        (a, b) => (b.score ?? 0) - (a.score ?? 0) || (b.viewers ?? 0) - (a.viewers ?? 0),
-      );
-    case "new":
-      return [...models].reverse();
-    case "all":
-    default:
-      return models;
-  }
-}
 
 function parseFilter(param: string | null): DiscoveryFilter {
   const allowed: DiscoveryFilter[] = [
@@ -70,50 +42,9 @@ function mergeUnique(existing: CamModel[], incoming: CamModel[]): CamModel[] {
   return next;
 }
 
-function DiscoverySection({
-  title,
-  models,
-  loadMoreRef,
-  loadingMore,
-  hasMore,
-}: {
-  title: string;
-  models: CamModel[];
-  loadMoreRef?: React.RefObject<HTMLDivElement | null>;
-  loadingMore?: boolean;
-  hasMore?: boolean;
-}) {
-  return (
-    <section
-      className="mt-2 sm:mt-6"
-      aria-labelledby={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
-    >
-      <h2
-        id={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
-        className="mb-1.5 hidden items-center gap-1.5 text-sm font-semibold text-foreground sm:mb-3 sm:flex sm:gap-2 sm:text-lg"
-      >
-        {title === "Live now" ? (
-          <span
-            className="inline-flex h-1.5 w-1.5 rounded-full bg-live sm:h-2 sm:w-2"
-            aria-hidden
-          />
-        ) : null}
-        {title}
-      </h2>
-      <ModelGrid models={models} />
-      {loadMoreRef ? (
-        <div ref={loadMoreRef} className="flex justify-center py-4" aria-hidden>
-          {loadingMore ? (
-            <p className="text-sm text-text-muted">Loading more models…</p>
-          ) : hasMore ? (
-            <span className="h-4 w-4" />
-          ) : models.length > 0 ? (
-            <p className="text-xs text-text-muted">You&apos;ve seen all models</p>
-          ) : null}
-        </div>
-      ) : null}
-    </section>
-  );
+function sectionTitle(filter: DiscoveryFilter): string {
+  if (filter === "live") return "Live now";
+  return filter.charAt(0).toUpperCase() + filter.slice(1);
 }
 
 export function HomeDiscovery({
@@ -121,86 +52,131 @@ export function HomeDiscovery({
   statusMessage,
   unconfigured,
 }: HomeDiscoveryProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initial = parseFilter(searchParams.get("filter"));
-  const [filter, setFilter] = useState<DiscoveryFilter>(initial);
+  const [filter, setFilter] = useState<DiscoveryFilter>(() =>
+    parseFilter(searchParams.get("filter")),
+  );
   const [catalog, setCatalog] = useState<CamModel[]>(initialModels);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [filterLoading, setFilterLoading] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const inflightRef = useRef(false);
+  const initialHydrated = useRef(false);
 
   useEffect(() => {
-    setCatalog(initialModels);
+    setFilter(parseFilter(searchParams.get("filter")));
+  }, [searchParams]);
+
+  const fetchPage = useCallback(
+    async (targetPage: number, activeFilter: DiscoveryFilter) => {
+      const res = await fetch(
+        `/api/models?page=${targetPage}&limit=${PAGE_SIZE}&filter=${activeFilter}`,
+      );
+      const data = (await res.json()) as ModelsResult;
+      return {
+        models: data.models ?? [],
+        hasMore: Boolean(data.hasMore) && (data.models?.length ?? 0) > 0,
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (unconfigured) return;
+    if (!initialHydrated.current && filter === "live") {
+      initialHydrated.current = true;
+      setCatalog(initialModels);
+      setPage(1);
+      setHasMore(initialModels.length >= PAGE_SIZE);
+      return;
+    }
+    initialHydrated.current = true;
+    let cancelled = false;
+    setFilterLoading(true);
     setPage(1);
-    setHasMore(true);
-  }, [initialModels]);
+    fetchPage(1, filter)
+      .then(({ models, hasMore: more }) => {
+        if (cancelled) return;
+        setCatalog(models);
+        setHasMore(more);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCatalog([]);
+          setHasMore(false);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFilterLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, fetchPage, initialModels, unconfigured]);
 
   const loadNextPage = useCallback(async () => {
-    if (loadingMore || !hasMore || unconfigured) return;
+    if (inflightRef.current || loadingMore || filterLoading || !hasMore || unconfigured) {
+      return;
+    }
+    inflightRef.current = true;
     setLoadingMore(true);
     const nextPage = page + 1;
     try {
-      const res = await fetch(
-        `/api/models?page=${nextPage}&limit=${PAGE_SIZE}&live=true`,
-      );
-      const data = (await res.json()) as ModelsResult;
-      const batch = data.models ?? [];
+      const { models: batch, hasMore: more } = await fetchPage(nextPage, filter);
       setCatalog((prev) => mergeUnique(prev, batch));
       setPage(nextPage);
-      setHasMore(Boolean(data.hasMore) && batch.length > 0);
+      setHasMore(more);
     } catch {
       setHasMore(false);
     } finally {
+      inflightRef.current = false;
       setLoadingMore(false);
     }
-  }, [hasMore, loadingMore, page, unconfigured]);
+  }, [
+    fetchPage,
+    filter,
+    filterLoading,
+    hasMore,
+    loadingMore,
+    page,
+    unconfigured,
+  ]);
 
   useEffect(() => {
     const el = loadMoreRef.current;
-    if (!el || !hasMore) return;
+    if (!el || !hasMore || filterLoading) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) loadNextPage();
       },
-      { rootMargin: "240px" },
+      { rootMargin: "320px", threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, loadNextPage]);
+  }, [hasMore, filterLoading, loadNextPage, catalog.length]);
 
-  const filtered = useMemo(
-    () => applyFilter(catalog, filter),
-    [catalog, filter],
-  );
-
-  const liveModels = useMemo(
-    () => catalog.filter((m) => m.isLive),
-    [catalog],
-  );
-
-  const popularModels = useMemo(
-    () =>
-      [...catalog]
-        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-        .slice(0, 8),
-    [catalog],
-  );
-
-  const liveCount = liveModels.length;
-
-  const infiniteProps = {
-    loadMoreRef,
-    loadingMore,
-    hasMore: filter !== "all" && hasMore,
+  const handleFilterChange = (next: DiscoveryFilter) => {
+    setFilter(next);
+    const path = next === "live" ? "/" : `/?filter=${next}`;
+    router.replace(path, { scroll: false });
   };
+
+  const liveCount = useMemo(
+    () => catalog.filter((m) => m.isLive).length,
+    [catalog],
+  );
+
+  const showGridSkeleton = filterLoading && catalog.length === 0;
 
   return (
     <>
       <div
-        className="sticky top-[var(--header-h)] z-40 border-b border-white/[0.06] bg-surface/95 backdrop-blur-md lg:static lg:border-0 lg:bg-transparent lg:backdrop-blur-none"
+        className="sticky top-[var(--header-h)] z-40 border-b border-white/[0.08] bg-[var(--header-bg)] lg:static lg:border-0 lg:bg-transparent"
       >
-        <FilterBar active={filter} onChange={setFilter} />
+        <FilterBar active={filter} onChange={handleFilterChange} />
       </div>
 
       <div className="px-2 py-2 sm:px-4 sm:py-4 lg:px-6">
@@ -218,7 +194,7 @@ export function HomeDiscovery({
             18+ only
           </p>
           {unconfigured ? (
-            <p className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            <p className="mt-2 rounded-md border border-white/10 bg-surface-elevated px-3 py-2 text-xs text-text-secondary">
               {statusMessage}
             </p>
           ) : statusMessage ? (
@@ -226,45 +202,65 @@ export function HomeDiscovery({
           ) : null}
         </section>
 
-      {catalog.length === 0 ? (
-        <p className="mt-6 rounded-card border border-border bg-surface px-4 py-10 text-center text-sm text-text-secondary">
-          {unconfigured
-            ? "Live listings will appear here when the feed is connected."
-            : "No models match this view. Try another filter."}
-        </p>
-      ) : filter !== "all" ? (
-        <DiscoverySection
-          title={
-            filter === "live"
-              ? "Live now"
-              : filter.charAt(0).toUpperCase() + filter.slice(1)
-          }
-          models={filtered}
-          {...infiniteProps}
-        />
-      ) : (
-        <>
-          {liveModels.length > 0 ? (
-            <DiscoverySection title="Live now" models={liveModels} />
-          ) : null}
-          <DiscoverySection
-            title="All models"
-            models={filtered}
-            {...infiniteProps}
-          />
-          {popularModels.length > 0 ? (
-            <DiscoverySection title="Popular now" models={popularModels} />
-          ) : null}
-        </>
-      )}
+        {showGridSkeleton ? (
+          <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ModelCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : catalog.length === 0 ? (
+          <p className="mt-6 rounded-card border border-border bg-surface px-4 py-10 text-center text-sm text-text-secondary">
+            {unconfigured
+              ? "Live listings will appear here when the feed is connected."
+              : "No models match this view. Try another filter."}
+          </p>
+        ) : (
+          <section
+            className="mt-2 sm:mt-6"
+            aria-labelledby="discovery-grid-title"
+          >
+            <h2
+              id="discovery-grid-title"
+              className="mb-1.5 hidden items-center gap-1.5 text-sm font-semibold text-foreground sm:mb-3 sm:flex sm:gap-2 sm:text-lg"
+            >
+              {filter === "live" ? (
+                <span
+                  className="inline-flex h-1.5 w-1.5 rounded-full bg-accent sm:h-2 sm:w-2"
+                  aria-hidden
+                />
+              ) : null}
+              {sectionTitle(filter)}
+            </h2>
+            <ModelGrid models={catalog} />
+            <div
+              ref={loadMoreRef}
+              className="flex min-h-[3rem] flex-col items-center justify-center gap-2 py-4"
+              aria-live="polite"
+            >
+              {loadingMore ? (
+                <>
+                  <span
+                    className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-accent"
+                    aria-hidden
+                  />
+                  <p className="text-xs text-text-muted">Loading more models…</p>
+                </>
+              ) : hasMore ? (
+                <span className="sr-only">More models load as you scroll</span>
+              ) : (
+                <p className="text-xs text-text-muted">You&apos;ve seen all models</p>
+              )}
+            </div>
+          </section>
+        )}
 
-      {loadingMore && catalog.length > 0 ? (
-        <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <ModelCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : null}
+        {loadingMore && catalog.length > 0 ? (
+          <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <ModelCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : null}
       </div>
     </>
   );
