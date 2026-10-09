@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { TaxonomyPageShell } from "@/components/seo/TaxonomyPageShell";
-import { getFeaturedModels } from "@/lib/models/getModels";
 import { filterModelsByCountry } from "@/lib/seo/filters";
+import { buildFacetTaxonomyContext } from "@/lib/taxonomy/facetPageContext";
 import { slugify } from "@/lib/seo/slug";
-import { buildTaxonomySeo, taxonomySeoToMetadata } from "@/lib/seo/taxonomySeo";
+import { taxonomySeoToMetadata } from "@/lib/seo/taxonomySeo";
 
 export const runtime = "edge";
 
@@ -21,9 +20,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const countrySlug = slugify(slug);
   const label = countryLabelFromSlug(countrySlug);
-  const result = await getFeaturedModels(96, { live: true });
-  const models = filterModelsByCountry(result.models, countrySlug);
-  const seo = buildTaxonomySeo("country", countrySlug, label, models.length);
+  const { seo } = await buildFacetTaxonomyContext(
+    "country",
+    countrySlug,
+    label,
+    filterModelsByCountry,
+  );
   return taxonomySeoToMetadata(seo);
 }
 
@@ -32,17 +34,19 @@ export default async function CountryPage({ params }: PageProps) {
   const countrySlug = slugify(slug);
   const label = countryLabelFromSlug(countrySlug);
 
-  const result = await getFeaturedModels(96, { live: true });
-  const models = filterModelsByCountry(result.models, countrySlug);
-  if (models.length === 0) notFound();
-
-  const seo = buildTaxonomySeo("country", countrySlug, label, models.length);
+  const { seo, models, result } = await buildFacetTaxonomyContext(
+    "country",
+    countrySlug,
+    label,
+    filterModelsByCountry,
+  );
 
   return (
     <TaxonomyPageShell
       seo={seo}
-      models={models}
+      models={models.length ? models : result.models}
       statusMessage={result.message}
+      emptyMessage="No live performers from this country right now."
     />
   );
 }

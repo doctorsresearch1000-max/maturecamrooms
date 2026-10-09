@@ -21,5 +21,9 @@ export async function fetchLiveMenuPool(): Promise<{
   const byId = new Map<string, CamModel>();
   for (const m of pool) byId.set(m.id, m);
 
-  return { pool: [...byId.values()], feedOk };
+  const unique = [...byId.values()];
+  return {
+    pool: unique,
+    feedOk: feedOk && unique.length > 0,
+  };
 }

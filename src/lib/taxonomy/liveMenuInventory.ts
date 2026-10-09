@@ -20,6 +20,7 @@ import {
   FACET_MIN_MODEL_COUNT,
   NICHE_CANONICAL_PRIORITY,
 } from "@/lib/taxonomy/constants";
+import { facetRedundantWithMature } from "@/lib/taxonomy/facetCanonical";
 
 export type MenuFacetItem = {
   slug: string;
@@ -130,8 +131,10 @@ export function buildLiveMenuInventory(
   const indexableAge = new Set<string>();
   if (feedOk) {
     for (const def of AGE_FACET_DEFS) {
-      const count = filterModelsByAgeBand(livePool, def.slug).length;
+      const matched = filterModelsByAgeBand(livePool, def.slug);
+      const count = matched.length;
       if (count < FACET_MIN_MODEL_COUNT) continue;
+      if (facetRedundantWithMature(livePool, matched.map((m) => m.id))) continue;
       indexableAge.add(def.slug);
       ageBands.push({
         slug: def.slug,
@@ -157,6 +160,8 @@ export function buildLiveMenuInventory(
     }
     for (const [slug, { label, count }] of counts) {
       if (count < FACET_MIN_MODEL_COUNT) continue;
+      const matched = livePool.filter((m) => ethnicitySlug(m) === slug);
+      if (facetRedundantWithMature(livePool, matched.map((m) => m.id))) continue;
       indexableEthnicity.add(slug);
       ethnicities.push({
         slug,
@@ -183,6 +188,8 @@ export function buildLiveMenuInventory(
     }
     for (const [slug, { label, count }] of counts) {
       if (count < FACET_MIN_MODEL_COUNT) continue;
+      const matched = livePool.filter((m) => hairSlug(m) === slug);
+      if (facetRedundantWithMature(livePool, matched.map((m) => m.id))) continue;
       indexableHair.add(slug);
       hairs.push({
         slug,
@@ -208,6 +215,11 @@ export function buildLiveMenuInventory(
     }
     for (const [slug, { label, count }] of counts) {
       if (count < FACET_MIN_MODEL_COUNT) continue;
+      const matched = livePool.filter((m) => {
+        const label = countryLabel(m.countryCode, m.country);
+        return label ? slugify(label) === slug : false;
+      });
+      if (facetRedundantWithMature(livePool, matched.map((m) => m.id))) continue;
       countries.push({
         slug,
         label,
