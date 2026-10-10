@@ -92,7 +92,7 @@ Requires `CRAK_*` in `.env.local` or the shell environment and `CLOUDFLARE_API_T
 
 ## Affiliate rules
 
-Outbound monetized links use `rel="nofollow sponsored"` via `src/lib/affiliate/links.ts`. Wire affiliate IDs in `.env.local` / Cloudflare before going live.
+Outbound monetized links use `rel="nofollow sponsored"` via `src/lib/affiliate/links.ts`. CrakRevenue room/smartlink URLs get `subid=maturecamrooms_com` via `src/lib/affiliate/crak-subid.ts` (`resolveRoomUrl`). Wire affiliate IDs in `.env.local` / Cloudflare before going live. Run `npm run verify:subid` in CI or locally.
 
 ## Project layout
 

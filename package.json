@@ -10,7 +10,8 @@
     "preview:cf": "npm run pages:build && npx wrangler pages dev .vercel/output/static",
     "start": "next start",
     "lint": "next lint",
-    "sitemap:audit": "tsx scripts/sitemap-audit.ts"
+    "sitemap:audit": "tsx scripts/sitemap-audit.ts",
+    "verify:subid": "tsx scripts/verify-crak-subid.ts"
   },
   "engines": {
     "node": ">=18"

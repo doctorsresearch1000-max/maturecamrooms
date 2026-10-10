@@ -79,6 +79,9 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: b1a465896521acc54d57f28ce75cc717
         run: node scripts/sync-pages-preview-crak-env.mjs
 
+      - name: Verify CrakRevenue subid on affiliate URLs
+        run: npm run verify:subid
+
       - name: Build Next.js application for Cloudflare Pages
         run: npm run pages:build
 

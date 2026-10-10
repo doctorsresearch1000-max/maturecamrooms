@@ -1,3 +1,4 @@
+import { applyCrakTrackingSubId } from "@/lib/affiliate/crak-subid";
 import {
   affiliateLinkProps,
   buildAffiliateRoomUrl,
@@ -5,10 +6,11 @@ import {
 import type { CamModel } from "@/lib/models/types";
 
 export function resolveRoomUrl(model: CamModel): string {
-  if (model.roomUrl?.startsWith("https://")) {
-    return model.roomUrl;
-  }
-  return buildAffiliateRoomUrl(model.platform, model.username);
+  const raw =
+    model.roomUrl?.startsWith("https://")
+      ? model.roomUrl
+      : buildAffiliateRoomUrl(model.platform, model.username);
+  return applyCrakTrackingSubId(raw, { platform: model.platform });
 }
 
 export function roomLinkProps(model: CamModel) {

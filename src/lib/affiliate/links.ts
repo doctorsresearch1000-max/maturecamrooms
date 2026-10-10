@@ -1,3 +1,4 @@
+import { applyCrakTrackingSubId } from "@/lib/affiliate/crak-subid";
 import { siteConfig } from "@/lib/site";
 
 export const AFFILIATE_REL = "nofollow sponsored";
@@ -33,7 +34,8 @@ export function buildAffiliateRoomUrl(
     case "crak":
       if (crak) {
         const joiner = crak.includes("?") ? "&" : "?";
-        return `${crak}${joiner}model=${encodeURIComponent(username)}`;
+        const smartlink = `${crak}${joiner}model=${encodeURIComponent(username)}`;
+        return applyCrakTrackingSubId(smartlink, { platform: "crak" });
       }
       return absoluteRoomFallback(username);
     case "stripchat":

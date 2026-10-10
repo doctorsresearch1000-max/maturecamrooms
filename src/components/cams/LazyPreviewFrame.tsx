@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { applyCrakTrackingSubId } from "@/lib/affiliate/crak-subid";
 import { affiliateLinkProps } from "@/lib/affiliate/links";
 
 type LazyPreviewFrameProps = {
