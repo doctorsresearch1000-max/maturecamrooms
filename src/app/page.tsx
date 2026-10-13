@@ -10,6 +10,7 @@ import {
   NAV_SITE_CATEGORIES,
 } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
+import { modelProfileHref } from "@/lib/seo/modelPermalink";
 import { siteConfig } from "@/lib/site";
 
 export const runtime = "edge";
@@ -99,7 +100,10 @@ export default async function HomePage({ searchParams }: PageProps) {
             <ul className="mt-4 space-y-1">
               {catalogResult.models.slice(0, 48).map((m) => (
                 <li key={m.id}>
-                  <a href={`/model/${m.username}`} className="text-white underline">
+                  <a
+                    href={modelProfileHref(m.username) ?? `/model/${m.username}`}
+                    className="text-white underline"
+                  >
                     {m.displayName}
                   </a>
                 </li>

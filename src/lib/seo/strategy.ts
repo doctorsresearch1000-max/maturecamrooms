@@ -13,9 +13,9 @@ export const PRIMARY_ENTITY_ROLE = "model_profile" as const;
 
 /** Secondary terms (VIP, leak, etc.) — config only; no copy or URLs in Phase 5. */
 export const SECONDARY_KEYWORD_ROLES = {
-  vip: { enabled: false, allowProfileCopy: false, allowUrls: false },
+  vip: { enabled: true, allowProfileCopy: true, allowUrls: true },
   leak: { enabled: false, allowProfileCopy: false, allowUrls: false },
-  leaks: { enabled: false, allowProfileCopy: false, allowUrls: false },
+  leaks: { enabled: true, allowProfileCopy: true, allowUrls: true },
   private: { enabled: false, allowProfileCopy: false, allowUrls: false },
   exclusive: { enabled: false, allowProfileCopy: false, allowUrls: false },
 } as const;

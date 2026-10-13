@@ -3,6 +3,7 @@ import { CATEGORY_DISPLAY, NAV_SITE_CATEGORIES } from "@/lib/seo/config";
 import { categoryPath } from "@/lib/seo/slug";
 import type { CamModel } from "@/lib/models/types";
 import type { ModelSEO } from "@/lib/seo/modelSeo";
+import { modelProfileHref } from "@/lib/seo/modelPermalink";
 
 type ModelSeoFooterProps = {
   model: CamModel;
@@ -90,7 +91,7 @@ export function ModelSeoFooter({ model, related, seo }: ModelSeoFooterProps) {
             {related.map((m) => (
               <li key={m.id} className="mb-1.5 break-inside-avoid">
                 <Link
-                  href={`/model/${m.username}`}
+                  href={modelProfileHref(m.username) ?? `/model/${m.username}`}
                   className="text-text-secondary hover:text-accent"
                 >
                   {m.displayName} live cam

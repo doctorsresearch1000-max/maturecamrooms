@@ -12,6 +12,7 @@ export const siteConfig = {
 
 export function absoluteUrl(path: string): string {
   const base = siteConfig.url.replace(/\/$/, "");
-  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const pathOnly = path.split("?")[0].split("#")[0];
+  const normalized = pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`;
   return `${base}${normalized}`;
 }

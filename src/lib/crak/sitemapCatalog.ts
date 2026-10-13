@@ -11,12 +11,11 @@ import {
   SITEMAP_MAX_CANDIDATES,
   SITEMAP_MAX_PAGES,
 } from "@/lib/seo/config";
-import { slugify } from "@/lib/seo/slug";
+import { sanitizeModelSlug } from "@/lib/seo/modelPermalink";
 import type { CamModel } from "@/lib/models/types";
 
 export function canonicalProfileSlug(username: string): string {
-  const slug = slugify(username);
-  return slug || username.trim().toLowerCase();
+  return sanitizeModelSlug(username) ?? username.trim().toLowerCase();
 }
 
 export type SitemapCatalogResult = {

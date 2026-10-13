@@ -9,8 +9,8 @@ export function slugify(value: string): string {
 }
 
 export function modelProfilePath(username: string): string {
-  const slug = slugify(username);
-  return `/model/${slug || encodeURIComponent(username)}`;
+  const slug = slugify(username.replace(/_/g, "-"));
+  return `/model/${slug}`;
 }
 
 export function categoryPath(category: string): string {

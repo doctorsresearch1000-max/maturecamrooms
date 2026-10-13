@@ -22,6 +22,7 @@ import {
   type CatalogSitemapBundle,
 } from "@/lib/taxonomy/catalogInventory";
 import type { CamModel } from "@/lib/models/types";
+import { filterModelsForSitemap } from "@/lib/seo/sitemapGuardian";
 
 export class SitemapGenerationError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
@@ -57,8 +58,8 @@ export async function runSitemapPipeline(): Promise<SitemapPipelineResult> {
   };
 
   const bundle = buildCatalogSitemapBundle(snapshot.models);
-  const indexableModels = snapshot.models.filter(
-    (m) => m.username && m.thumbnailUrl,
+  const indexableModels = filterModelsForSitemap(
+    snapshot.models.filter((m) => m.username && m.thumbnailUrl),
   );
 
   return {
@@ -100,7 +101,7 @@ export async function fetchIndexableModelsForSitemap(): Promise<CamModel[]> {
 export function modelsToSitemapEntries(
   models: CamModel[],
 ): MetadataRoute.Sitemap {
-  return models.map((model) => ({
+  return filterModelsForSitemap(models).map((model) => ({
     url: canonicalModelUrl(model.username),
     lastModified: model.lastConnection
       ? new Date(model.lastConnection)
