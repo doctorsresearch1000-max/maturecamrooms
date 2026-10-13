@@ -17,7 +17,7 @@ export async function generateMetadata({
   const { username } = await params;
   const bundle = await loadModelProfile(username);
   if (!bundle) {
-    return { title: "Model not found", robots: { index: false, follow: false } };
+    notFound();
   }
   return modelSeoToMetadata(bundle.seo);
 }

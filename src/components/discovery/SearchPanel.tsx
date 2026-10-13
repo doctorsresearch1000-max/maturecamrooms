@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useShell } from "@/components/layout/ShellContext";
 import { countryLabel } from "@/lib/country";
 import type { CamModel, ModelsResult } from "@/lib/models/types";
+import { modelProfileHref } from "@/lib/seo/modelPermalink";
 
 export function SearchPanel() {
   const { searchOpen, setSearchOpen } = useShell();
@@ -107,7 +108,7 @@ export function SearchPanel() {
                   {results.models.map((m) => (
                     <li key={m.id}>
                       <Link
-                        href={`/model/${m.username}`}
+                        href={modelProfileHref(m.username) ?? `/model/${m.username}`}
                         onClick={close}
                         className="flex min-h-[48px] items-center justify-between rounded-lg px-3 py-2 hover:bg-surface-hover active:bg-surface-hover"
                       >

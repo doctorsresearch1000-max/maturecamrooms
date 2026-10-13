@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "audit:canonical-slugs": "tsx scripts/audit-canonical-slugs.mjs",
+    "verify:profile-links": "node scripts/verify-profile-internal-links.mjs",
+    "build": "npm run audit:canonical-slugs && npm run verify:profile-links && next build",
     "generate:sitemap": "tsx scripts/generate-sitemap.ts",
-    "pages:build": "npm run generate:sitemap && npx @cloudflare/next-on-pages",
+    "pages:build": "npm run generate:sitemap && npm run audit:canonical-slugs && npx @cloudflare/next-on-pages",
     "preview:cf": "npm run pages:build && npx wrangler pages dev .vercel/output/static",
     "start": "next start",
     "lint": "next lint",

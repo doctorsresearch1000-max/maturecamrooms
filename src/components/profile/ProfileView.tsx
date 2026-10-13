@@ -17,14 +17,25 @@ import {
 } from "@/lib/seo/taxonomyInventory";
 import { ModelSeoFooter } from "@/components/profile/ModelSeoFooter";
 import { CATEGORY_DISPLAY } from "@/lib/seo/config";
+import type { ModelIntentRoute } from "@/lib/seo/modelIntent";
 
 type ProfileViewProps = {
   model: CamModel;
   related: CamModel[];
   seo: ModelSEO;
+  intent?: ModelIntentRoute | null;
+  intentPageH1?: string | null;
 };
 
-export function ProfileView({ model, related, seo }: ProfileViewProps) {
+export function ProfileView({
+  model,
+  related,
+  seo,
+  intent = null,
+  intentPageH1 = null,
+}: ProfileViewProps) {
+  const primaryH1 = intentPageH1?.trim() || seo.h1;
+  const secondaryH2 = intentPageH1?.trim() ? seo.h1 : null;
   const [expanded, setExpanded] = useState(false);
   const flag = countryCodeToFlag(model.countryCode);
   const country = countryLabel(model.countryCode, model.country);
@@ -49,7 +60,12 @@ export function ProfileView({ model, related, seo }: ProfileViewProps) {
         <header>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{seo.h1}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{primaryH1}</h1>
+              {secondaryH2 ? (
+                <h2 className="mt-1 text-lg font-semibold text-text-secondary">
+                  {secondaryH2}
+                </h2>
+              ) : null}
               <p className="mt-1 text-sm font-medium text-text-secondary">
                 {seo.usernameDisplay}
               </p>

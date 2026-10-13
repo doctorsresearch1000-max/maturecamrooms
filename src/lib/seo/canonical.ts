@@ -9,13 +9,15 @@ import {
   figurePath,
   hairPath,
   languagePath,
-  modelProfilePath,
   platformPath,
   tagPath,
 } from "@/lib/seo/slug";
 
+import { sanitizeModelSlug } from "@/lib/seo/modelPermalink";
+
 export function canonicalModelUrl(username: string): string {
-  return absoluteUrl(modelProfilePath(username));
+  const slug = sanitizeModelSlug(username) ?? username.trim().toLowerCase();
+  return absoluteUrl(`/model/${slug}`);
 }
 
 export function canonicalCategoryUrl(category: string): string {

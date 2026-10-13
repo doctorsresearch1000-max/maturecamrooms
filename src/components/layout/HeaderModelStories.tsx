@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useModelDirectory } from "@/hooks/useModelDirectory";
+import { modelProfileHref } from "@/lib/seo/modelPermalink";
 
 const STORY_SIZE = 44;
 const AVATAR_SIZE = 38;
@@ -20,7 +21,7 @@ function StoryAvatar({
 }) {
   return (
     <Link
-      href={`/model/${username}`}
+      href={modelProfileHref(username) ?? `/model/${username}`}
       className="group flex shrink-0 flex-col items-center gap-0.5"
       title={displayName}
     >

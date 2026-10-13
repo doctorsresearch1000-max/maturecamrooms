@@ -1,5 +1,6 @@
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { canonicalModelUrl } from "@/lib/seo/canonical";
+import { sanitizeModelSlug } from "@/lib/seo/modelPermalink";
 import type { BreadcrumbItem } from "@/lib/seo/breadcrumbGenerator";
 import type { CamModel } from "@/lib/models/types";
 
@@ -28,7 +29,12 @@ export function buildModelWebPageSchema(
     "@type": "WebPage",
     name: title,
     description,
-    url: canonicalModelUrl(model.username),
+    url: canonicalModelUrl(
+      sanitizeModelSlug(model.username) ?? model.username,
+    ),
+    "@id": canonicalModelUrl(
+      sanitizeModelSlug(model.username) ?? model.username,
+    ),
     isPartOf: {
       "@type": "WebSite",
       name: siteConfig.name,
@@ -39,13 +45,17 @@ export function buildModelWebPageSchema(
 
 /** Person-like entity only when we have a real display name + profile URL (no fabricated fields). */
 export function buildModelProfileEntitySchema(model: CamModel) {
-  const url = canonicalModelUrl(model.username);
-  const username = model.username.trim();
+  const slug =
+    sanitizeModelSlug(model.username) ??
+    model.username.trim().toLowerCase();
+  const url = canonicalModelUrl(slug);
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Person",
+    "@id": `${url}#person`,
     name: model.displayName.trim(),
-    alternateName: username,
+    alternateName: slug,
+    identifier: slug,
     url,
   };
   if (model.thumbnailUrl?.startsWith("https://")) {

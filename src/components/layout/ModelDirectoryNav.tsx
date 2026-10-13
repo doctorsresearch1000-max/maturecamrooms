@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useModelDirectory } from "@/hooks/useModelDirectory";
+import { modelProfileHref } from "@/lib/seo/modelPermalink";
 
 export function ModelDirectoryNav() {
   const { models, loading } = useModelDirectory(true);
@@ -22,7 +23,10 @@ export function ModelDirectoryNav() {
         >
           {models.map((m) => (
             <li key={m.id}>
-              <Link href={`/model/${m.username}`} className={linkClass}>
+              <Link
+                href={modelProfileHref(m.username) ?? `/model/${m.username}`}
+                className={linkClass}
+              >
                 <span className="truncate">
                   {m.displayName}
                   {m.isLive ? (
