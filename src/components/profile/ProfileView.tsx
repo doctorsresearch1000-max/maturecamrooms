@@ -49,7 +49,10 @@ export function ProfileView({
     isCategoryIndexableForModel(model, seo.taxonomyIndexability);
 
   return (
-    <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-4">
+    <div
+      className="pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-4"
+      data-profile-intent={intent ?? undefined}
+    >
       <div className="px-3 pt-3 sm:px-6">
         <Breadcrumbs items={seo.breadcrumbs} className="mb-1" />
       </div>
